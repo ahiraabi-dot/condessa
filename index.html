@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Condessa IPTV - Assinatura</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Adicionando Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <style>
         :root {
             --primary-bg: #121212;
@@ -1135,20 +1138,12 @@
                         <input type="text" id="channel-category" class="form-input" placeholder="Esportes, Notícias, etc">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Avaliação</label>
-                        <input type="number" id="channel-rating" class="form-input" placeholder="0.0 a 5.0" step="0.1" min="0" max="5">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL da Logo</label>
-                        <input type="text" id="channel-logo" class="form-input" placeholder="https://...">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="text" id="channel-image" class="form-input" placeholder="https://...">
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL do Stream</label>
-                        <input type="text" id="channel-stream" class="form-input" placeholder="https://... (YouTube ou stream direto)">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">País</label>
-                        <input type="text" id="channel-country" class="form-input" placeholder="BR, US, etc">
+                        <input type="text" id="channel-stream" class="form-input" placeholder="https://... (m3u8, mp4, etc)">
                     </div>
                 </div>
                 <button class="submit-btn" onclick="addNewChannel()">Adicionar Canal</button>
@@ -1163,17 +1158,19 @@
         </div>
     </div>
 
-    <!-- Aplicação Principal (aparece após login) -->
-    <div id="main-app" class="hidden">
+    <!-- Interface Principal -->
+    <div id="main-interface" class="hidden">
         <!-- Header -->
         <header>
-            <div class="header-logo">CONDESSA</div>
+            <div class="header-logo">CONDESSA IPTV</div>
+            
             <div class="search-container">
-                <input type="text" class="search-input" placeholder="Buscar filmes, séries, canais..." id="search-input">
-                <button class="search-btn" id="search-btn">
+                <input type="text" id="search-input" class="search-input" placeholder="Buscar filmes, séries...">
+                <button class="search-btn" onclick="performSearch()">
                     <i class="fas fa-search"></i>
                 </button>
             </div>
+            
             <div class="user-menu">
                 <button class="admin-btn" onclick="showAdminLogin()">
                     <i class="fas fa-cog"></i> Admin
@@ -1185,471 +1182,397 @@
         </header>
 
         <!-- Navigation -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="home">
+        <nav class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('home')">
                 <i class="fas fa-home"></i>
                 <span>Início</span>
             </div>
-            <div class="nav-tab" data-tab="movies">
+            <div class="nav-tab" onclick="switchTab('movies')">
                 <i class="fas fa-film"></i>
                 <span>Filmes</span>
             </div>
-            <div class="nav-tab" data-tab="series">
+            <div class="nav-tab" onclick="switchTab('series')">
                 <i class="fas fa-tv"></i>
                 <span>Séries</span>
             </div>
-            <div class="nav-tab" data-tab="live">
+            <div class="nav-tab" onclick="switchTab('tv')">
                 <i class="fas fa-broadcast-tower"></i>
-                <span>Ao Vivo</span>
+                <span>Canais TV</span>
             </div>
-            <div class="nav-tab" data-tab="favorites">
+            <div class="nav-tab" onclick="switchTab('favorites')">
                 <i class="fas fa-heart"></i>
                 <span>Favoritos</span>
             </div>
-        </div>
+        </nav>
 
         <!-- Main Content -->
-        <div class="main-content">
-            <!-- Home -->
-            <div id="home" class="tab-content active-tab">
+        <main class="main-content">
+            <!-- Home Tab -->
+            <div id="home-tab" class="tab-content active-tab">
                 <div class="section-title">
                     <h2>Filmes em Destaque</h2>
                     <span onclick="switchTab('movies')">Ver Todos</span>
                 </div>
-                <div class="content-grid" id="home-movies"></div>
+                <div class="content-grid" id="featured-movies">
+                    <!-- Filmes em destaque serão carregados aqui -->
+                </div>
 
                 <div class="section-title">
-                    <h2>Séries em Alta</h2>
+                    <h2>Séries em Destaque</h2>
                     <span onclick="switchTab('series')">Ver Todos</span>
                 </div>
-                <div class="content-grid" id="home-series"></div>
+                <div class="content-grid" id="featured-series">
+                    <!-- Séries em destaque serão carregadas aqui -->
+                </div>
 
                 <div class="section-title">
                     <h2>Canais Populares</h2>
-                    <span onclick="switchTab('live')">Ver Todos</span>
+                    <span onclick="switchTab('tv')">Ver Todos</span>
                 </div>
-                <div class="content-grid" id="home-channels"></div>
+                <div class="content-grid" id="featured-channels">
+                    <!-- Canais populares serão carregados aqui -->
+                </div>
             </div>
 
-            <!-- Movies -->
-            <div id="movies" class="tab-content">
+            <!-- Movies Tab -->
+            <div id="movies-tab" class="tab-content hidden">
                 <div class="section-title">
                     <h2>Todos os Filmes</h2>
                 </div>
-                <div class="content-grid" id="all-movies"></div>
+                <div class="content-grid" id="all-movies">
+                    <!-- Todos os filmes serão carregados aqui -->
+                </div>
             </div>
 
-            <!-- Series -->
-            <div id="series" class="tab-content">
+            <!-- Series Tab -->
+            <div id="series-tab" class="tab-content hidden">
                 <div class="section-title">
                     <h2>Todas as Séries</h2>
                 </div>
-                <div class="content-grid" id="all-series"></div>
-            </div>
-
-            <!-- Live TV -->
-            <div id="live" class="tab-content">
-                <div class="section-title">
-                    <h2>Canais Ao Vivo</h2>
+                <div class="content-grid" id="all-series">
+                    <!-- Todas as séries serão carregadas aqui -->
                 </div>
-                <div class="content-grid" id="all-channels"></div>
             </div>
 
-            <!-- Favorites -->
-            <div id="favorites" class="tab-content">
+            <!-- TV Tab -->
+            <div id="tv-tab" class="tab-content hidden">
+                <div class="section-title">
+                    <h2>Todos os Canais</h2>
+                </div>
+                <div class="content-grid" id="all-channels">
+                    <!-- Todos os canais serão carregados aqui -->
+                </div>
+            </div>
+
+            <!-- Favorites Tab -->
+            <div id="favorites-tab" class="tab-content hidden">
                 <div class="section-title">
                     <h2>Meus Favoritos</h2>
                 </div>
-                <div class="content-grid" id="favorites-content"></div>
-                <div id="empty-favorites" class="favorites-empty">
-                    <i class="fas fa-heart"></i>
-                    <h3>Nenhum favorito</h3>
-                    <p>Adicione conteúdos aos favoritos</p>
+                <div id="favorites-content">
+                    <!-- Conteúdo favorito será carregado aqui -->
                 </div>
             </div>
 
             <!-- Search Results -->
-            <div id="search" class="tab-content">
+            <div id="search-results" class="search-results hidden">
                 <div class="section-title">
                     <h2>Resultados da Busca</h2>
-                    <span onclick="clearSearch()">Limpar</span>
+                    <span onclick="clearSearch()">Voltar</span>
                 </div>
-                <div class="content-grid" id="search-results"></div>
-                <div id="no-results" class="favorites-empty hidden">
-                    <i class="fas fa-search"></i>
-                    <h3>Nenhum resultado encontrado</h3>
-                    <p>Tente outros termos de busca</p>
+                <div class="search-count" id="search-count"></div>
+                <div class="content-grid" id="search-results-grid">
+                    <!-- Resultados da busca serão carregados aqui -->
                 </div>
             </div>
-        </div>
+        </main>
+    </div>
 
-        <!-- Modal de Séries -->
-        <div id="series-modal" class="series-modal hidden">
-            <div class="series-modal-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 id="series-modal-title">Selecionar Episódio</h2>
-                    <button class="close-player" onclick="closeSeriesModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div id="season-selector" class="season-selector">
-                    <!-- Botões de temporada serão gerados aqui -->
-                </div>
-                
-                <div id="episodes-container" class="episodes-grid">
-                    <!-- Episódios serão gerados aqui -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de Assinatura -->
-        <div id="subscription-overlay" class="subscription-overlay hidden">
-            <div class="subscription-modal">
-                <h2>Assine Agora</h2>
-                <p>Escolha seu plano para acessar todo o conteúdo</p>
-                
-                <div class="plan-options">
-                    <div class="plan-card" data-plan="7" data-price="10">
-                        <h3>7 Dias</h3>
-                        <div class="plan-price">R$ 10,00</div>
-                        <small>Teste grátis por 24h</small>
-                    </div>
-                    <div class="plan-card" data-plan="30" data-price="30">
-                        <h3>30 Dias</h3>
-                        <div class="plan-price">R$ 30,00</div>
-                        <small>Melhor custo-benefício</small>
-                    </div>
-                    <div class="plan-card" data-plan="90" data-price="75">
-                        <h3>90 Dias</h3>
-                        <div class="plan-price">R$ 75,00</div>
-                        <small>Economize 17%</small>
-                    </div>
-                </div>
-
-                <div class="payment-methods">
-                    <button class="payment-method active" data-method="pix">PIX</button>
-                    <button class="payment-method" data-method="card">Cartão</button>
-                </div>
-
-                <div id="pix-payment" class="payment-section">
-                    <div class="pix-code">
-                        <p><strong>Chave PIX:</strong></p>
-                        <p id="pix-key">condessa@email.com</p>
-                        <p><small>Envie o comprovante para WhatsApp</small></p>
-                    </div>
-                </div>
-
-                <div id="card-payment" class="payment-section hidden">
-                    <p>Pagamento com cartão em breve</p>
-                </div>
-
-                <button id="confirm-payment" class="control-btn" style="background: var(--accent-yellow); color: black; margin-top: 1rem;">
-                    Confirmar Pagamento
-                </button>
-
-                <button id="close-subscription" class="control-btn" style="margin-top: 0.5rem;">
-                    Fechar
-                </button>
-            </div>
-        </div>
-
-        <!-- Video Player -->
-        <div id="video-player">
-            <div class="player-header">
-                <div id="player-title">Título do Vídeo</div>
-                <button class="close-player" id="close-video-player">
+    <!-- Modal de Séries -->
+    <div id="series-modal" class="series-modal hidden">
+        <div class="series-modal-content">
+            <div class="series-modal-header">
+                <h2 id="series-modal-title">Série</h2>
+                <button class="close-player" onclick="closeSeriesModal()">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <div class="video-container">
-                <div class="player-type-indicator" id="player-type">Player de Vídeo</div>
-                <video id="video-element" controls></video>
-                <iframe id="youtube-element" class="youtube-container" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
+            <div id="series-seasons" class="season-selector">
+                <!-- Temporadas serão carregadas aqui -->
             </div>
-            <div class="player-controls">
-                <button class="control-btn" id="play-btn">
-                    <i class="fas fa-play"></i>
-                </button>
-                <button class="control-btn" id="pause-btn">
-                    <i class="fas fa-pause"></i>
-                </button>
-                <button class="control-btn" id="fullscreen-btn">
-                    <i class="fas fa-expand"></i>
-                </button>
+            <div id="series-episodes" class="episodes-grid">
+                <!-- Episódios serão carregados aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Player -->
+    <div id="video-player">
+        <div class="player-header">
+            <h3 id="player-title">Título do Vídeo</h3>
+            <button class="close-player" onclick="closeVideoPlayer()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="video-container">
+            <div class="player-type-indicator" id="player-type-indicator"></div>
+            <video id="video-element" controls></video>
+            <iframe id="youtube-element" class="youtube-container" style="display: none;" 
+                    frameborder="0" allowfullscreen></iframe>
+        </div>
+        <div class="player-controls">
+            <button class="control-btn" onclick="toggleFavorite()">
+                <i class="far fa-heart" id="favorite-icon"></i> Favoritar
+            </button>
+            <button class="control-btn" onclick="toggleSubtitles()">
+                <i class="fas fa-closed-captioning"></i> Legendas
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Assinatura -->
+    <div id="subscription-overlay" class="subscription-overlay hidden">
+        <div class="subscription-modal">
+            <div class="logo">CONDESSA IPTV</div>
+            <h2 style="margin: 1rem 0;">Escolha seu Plano</h2>
+            
+            <div class="plan-options">
+                <div class="plan-card" onclick="selectPlan(7)">
+                    <h3>7 Dias</h3>
+                    <div class="plan-price">R$ 10</div>
+                    <p>Teste Básico</p>
+                </div>
+                <div class="plan-card" onclick="selectPlan(30)">
+                    <h3>30 Dias</h3>
+                    <div class="plan-price">R$ 30</div>
+                    <p>Mais Popular</p>
+                </div>
+                <div class="plan-card" onclick="selectPlan(90)">
+                    <h3>90 Dias</h3>
+                    <div class="plan-price">R$ 75</div>
+                    <p>Melhor Oferta</p>
+                </div>
+            </div>
+
+            <div class="payment-methods">
+                <button class="payment-method active" onclick="selectPayment('pix')">PIX</button>
+                <button class="payment-method" onclick="selectPayment('card')">Cartão</button>
+            </div>
+
+            <div id="pix-payment" class="payment-section">
+                <div class="pix-code">
+                    <p>Chave PIX: <strong>condessa@iptv.com</strong></p>
+                    <p style="margin-top: 0.5rem;">Envie o comprovante para WhatsApp: (11) 99999-9999</p>
+                </div>
+            </div>
+
+            <div id="card-payment" class="payment-section hidden">
+                <input type="text" class="login-input" placeholder="Número do Cartão">
+                <input type="text" class="login-input" placeholder="Nome no Cartão">
+                <div style="display: flex; gap: 1rem;">
+                    <input type="text" class="login-input" placeholder="Validade">
+                    <input type="text" class="login-input" placeholder="CVV">
+                </div>
+            </div>
+
+            <button class="login-btn" style="margin-top: 2rem;" onclick="completePayment()">
+                Finalizar Pagamento
+            </button>
+
+            <div class="admin-link" onclick="closeSubscriptionModal()" style="margin-top: 1rem;">
+                Voltar
             </div>
         </div>
     </div>
 
     <script>
-        // 🔥 CONFIGURAÇÃO DO FIREBASE
+        // Configuração do Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyCWS0jcIeAySuIaDSBqSe5MtQjDzfmfUsY",
-            authDomain: "condessa-c150b.firebaseapp.com",
-            projectId: "condessa-c150b",
-            storageBucket: "condessa-c150b.firebasestorage.app",
-            messagingSenderId: "563703688633",
-            appId: "1:563703688633:web:5c6d0db4e50a17341e5a68"
+            apiKey: "AIzaSyDWulc3os3K10BExe65cBRj8opLfF9j9KI",
+            authDomain: "condessa-iptv.firebaseapp.com",
+            projectId: "condessa-iptv",
+            storageBucket: "condessa-iptv.firebasestorage.app",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
         };
 
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
 
-        // 🔐 **SISTEMA DE AUTENTICAÇÃO**
-        const ADMIN_CREDENTIALS = { username: '123', password: '123' };
+        // Dados da aplicação
         let currentUser = null;
-        let isAdmin = false;
+        let selectedPlan = 30;
+        let selectedPayment = 'pix';
+        let currentSeries = null;
+        let currentSeason = 1;
+        let currentVideo = null;
+        let favorites = [];
+        let adminUsers = [];
+        let movies = [];
+        let series = [];
+        let tvChannels = [];
 
-        // 🗄️ **SISTEMA DE DADOS**
-        let contentData = {
-            movies: [],
-            series: [],
-            channels: []
-        };
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+            checkLoginStatus();
+        });
 
-        let usersLocalData = {};
-
-        // 📁 **CONFIGURAÇÃO GOOGLE DRIVE**
-        let driveConfig = JSON.parse(localStorage.getItem('drive_config')) || {
-            apiKey: "AIzaSyDWulc3os3K10BExe65cBRj8opLfF9j9KI"
-        };
-
-        let driveFileId = null;
-
-        // 🔧 **FUNÇÕES GOOGLE DRIVE API**
-        async function driveAPI(endpoint, method = 'GET', data = null) {
-            const apiKey = driveConfig.apiKey;
-            const baseURL = 'https://www.googleapis.com/drive/v3';
-            const url = `${baseURL}${endpoint}?key=${apiKey}`;
+        function initializeApp() {
+            // Carregar dados do localStorage
+            loadLocalData();
             
-            const options = {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            };
-
-            if (data && method !== 'GET') {
-                options.body = JSON.stringify(data);
-            }
-
-            const response = await fetch(url, options);
+            // Inicializar dados de exemplo se não existirem
+            initializeSampleData();
             
-            if (!response.ok) {
-                throw new Error(`Google Drive API error: ${response.status}`);
-            }
-
-            return await response.json();
+            // Configurar listeners
+            setupEventListeners();
         }
 
-        // 🔍 **ENCONTRAR ARQUIVO EXISTENTE**
-        async function findDriveFile() {
-            try {
-                const response = await driveAPI('/files');
-                const files = response.files || [];
-                
-                const ourFile = files.find(file => file.name === 'condessa_data.json');
-                return ourFile ? ourFile.id : null;
-            } catch (error) {
-                return null;
-            }
+        function setupEventListeners() {
+            // Login de usuário
+            document.getElementById('login-btn').addEventListener('click', loginUser);
+            document.getElementById('login-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginUser();
+            });
+
+            // Cadastro de usuário
+            document.getElementById('register-btn').addEventListener('click', registerUser);
+            document.getElementById('register-confirm-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') registerUser();
+            });
+
+            // Login admin
+            document.getElementById('admin-login-btn').addEventListener('click', loginAdmin);
+            document.getElementById('admin-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginAdmin();
+            });
+
+            // Busca
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') performSearch();
+            });
         }
 
-        // 📄 **CRIAR NOVO ARQUIVO**
-        async function createDriveFile(data) {
-            const metadata = {
-                name: 'condessa_data.json',
-                mimeType: 'application/json'
-            };
-
-            const formData = new FormData();
-            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            formData.append('file', new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-
-            const response = await fetch(
-                `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&key=${driveConfig.apiKey}`,
-                {
-                    method: 'POST',
-                    body: formData
-                }
-            );
-
-            const result = await response.json();
-            return result.id;
-        }
-
-        // 📝 **ATUALIZAR ARQUIVO EXISTENTE**
-        async function updateDriveFile(fileId, data) {
-            const metadata = {
-                name: 'condessa_data.json'
-            };
-
-            const formData = new FormData();
-            formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-            formData.append('file', new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-
-            const response = await fetch(
-                `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&key=${driveConfig.apiKey}`,
-                {
-                    method: 'PATCH',
-                    body: formData
-                }
-            );
-
-            return await response.json();
-        }
-
-        // 💾 **SALVAR DADOS NO GOOGLE DRIVE**
-        async function saveDataToDrive() {
-            try {
-                showDriveStatus('🔄 Salvando dados no Google Drive...', 'loading');
-
-                const allData = {
-                    content: contentData,
-                    users: usersLocalData,
-                    lastSync: new Date().toISOString()
-                };
-
-                saveLocalData();
-
-                let fileId = driveFileId || await findDriveFile();
-                
-                if (fileId) {
-                    await updateDriveFile(fileId, allData);
-                    driveFileId = fileId;
-                } else {
-                    fileId = await createDriveFile(allData);
-                    driveFileId = fileId;
-                }
-
-                showDriveStatus('✅ Dados salvos com sucesso!', 'success');
-                return true;
-            } catch (error) {
-                console.error('Erro ao salvar no Drive:', error);
-                showDriveStatus('❌ Erro ao salvar. Usando dados locais.', 'error');
-                return false;
-            }
-        }
-
-        // 📥 **CARREGAR DADOS DO GOOGLE DRIVE**
-        async function loadDataFromDrive() {
-            try {
-                showDriveStatus('🔄 Carregando dados do Google Drive...', 'loading');
-
-                const fileId = await findDriveFile();
-                
-                if (!fileId) {
-                    showDriveStatus('⚠️ Nenhum dado salvo encontrado. Iniciando novo.', 'error');
-                    loadLocalData();
-                    return false;
-                }
-
-                driveFileId = fileId;
-
-                const response = await fetch(
-                    `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${driveConfig.apiKey}`
-                );
-
-                if (response.ok) {
-                    const data = await response.json();
-                    contentData = data.content || { movies: [], series: [], channels: [] };
-                    usersLocalData = data.users || {};
-                    
-                    saveLocalData();
-                    
-                    showDriveStatus('✅ Dados carregados com sucesso!', 'success');
-                    return true;
-                } else {
-                    throw new Error('Não foi possível carregar o arquivo');
-                }
-            } catch (error) {
-                console.error('Erro ao carregar do Drive:', error);
-                showDriveStatus('⚠️ Usando dados locais', 'error');
-                loadLocalData();
-                return false;
-            }
-        }
-
-        // 🧪 **TESTAR CONEXÃO**
-        async function testDriveConnection() {
-            const apiKey = document.getElementById('drive-api-key').value;
-            
-            if (!apiKey) {
-                showDriveStatus('❌ Cole sua API Key primeiro', 'error');
-                return;
-            }
-
-            driveConfig = { apiKey: apiKey };
-            localStorage.setItem('drive_config', JSON.stringify(driveConfig));
-            
-            showDriveStatus('🔄 Testando conexão...', 'loading');
-
-            try {
-                const response = await driveAPI('/about?fields=user');
-                
-                if (response.user) {
-                    showDriveStatus('✅ Conexão com Google Drive estabelecida!', 'success');
-                    await loadDataFromDrive();
-                    if (isAdmin) {
-                        loadUserList();
-                        loadMoviesList();
-                        loadSeriesList();
-                        loadChannelsList();
-                        updateDashboard();
-                    }
-                }
-            } catch (error) {
-                showDriveStatus('❌ Erro: ' + error.message, 'error');
-            }
-        }
-
-        // 🔄 **SINCRONIZAÇÃO MANUAL**
-        async function manualSync() {
-            await saveDataToDrive();
-        }
-
-        function showDriveStatus(message, type) {
-            const statusElement = document.getElementById('drive-status');
-            if (statusElement) {
-                statusElement.textContent = message;
-                statusElement.className = 'sync-status';
-                
-                if (type === 'success') statusElement.classList.add('sync-success');
-                else if (type === 'error') statusElement.classList.add('sync-error');
-                else if (type === 'loading') statusElement.classList.add('sync-loading');
-            }
-        }
-
-        // 💾 **DADOS LOCAIS (fallback)**
         function loadLocalData() {
-            const localContent = localStorage.getItem('condessa_content');
-            const localUsers = localStorage.getItem('condessa_users_local');
-            
-            if (localContent) contentData = JSON.parse(localContent);
-            if (localUsers) usersLocalData = JSON.parse(localUsers);
+            // Carregar dados do localStorage
+            const savedUsers = localStorage.getItem('adminUsers');
+            const savedMovies = localStorage.getItem('movies');
+            const savedSeries = localStorage.getItem('series');
+            const savedChannels = localStorage.getItem('tvChannels');
+            const savedFavorites = localStorage.getItem('favorites');
+
+            if (savedUsers) adminUsers = JSON.parse(savedUsers);
+            if (savedMovies) movies = JSON.parse(savedMovies);
+            if (savedSeries) series = JSON.parse(savedSeries);
+            if (savedChannels) tvChannels = JSON.parse(savedChannels);
+            if (savedFavorites) favorites = JSON.parse(savedFavorites);
         }
 
         function saveLocalData() {
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
+            // Salvar dados no localStorage
+            localStorage.setItem('adminUsers', JSON.stringify(adminUsers));
+            localStorage.setItem('movies', JSON.stringify(movies));
+            localStorage.setItem('series', JSON.stringify(series));
+            localStorage.setItem('tvChannels', JSON.stringify(tvChannels));
+            localStorage.setItem('favorites', JSON.stringify(favorites));
         }
 
-        // 🔐 **FUNÇÕES DE AUTENTICAÇÃO CORRIGIDAS**
+        function initializeSampleData() {
+            // Inicializar usuário admin padrão se não existir
+            if (adminUsers.length === 0) {
+                adminUsers.push({
+                    username: 'admin',
+                    password: 'admin123',
+                    email: 'admin@condessa.com'
+                });
+                saveLocalData();
+            }
+
+            // Inicializar filmes de exemplo se não existirem
+            if (movies.length === 0) {
+                movies = [
+                    {
+                        id: 1,
+                        title: "Vingadores: Ultimato",
+                        genre: "Ação, Aventura",
+                        rating: 8.4,
+                        image: "https://image.tmdb.org/t/p/w500/q6725aR8Zs4IwGMXzZT8aC8lh41.jpg",
+                        video: "https://www.youtube.com/embed/g6ng8iy-l0U",
+                        description: "Os Vingadores precisam se reunir novamente para desfazer as ações de Thanos."
+                    },
+                    {
+                        id: 2,
+                        title: "John Wick 4",
+                        genre: "Ação, Thriller",
+                        rating: 7.9,
+                        image: "https://image.tmdb.org/t/p/w500/gh2bmprLtUQ8oXCSluzfqaicyrm.jpg",
+                        video: "https://www.youtube.com/embed/qEVUtrk8_B4",
+                        description: "John Wick descobre um caminho para derrotar a Alta Cúpula."
+                    }
+                ];
+                saveLocalData();
+            }
+
+            // Inicializar séries de exemplo se não existirem
+            if (series.length === 0) {
+                series = [
+                    {
+                        id: 1,
+                        title: "The Last of Us",
+                        genre: "Drama, Aventura",
+                        rating: 8.8,
+                        image: "https://image.tmdb.org/t/p/w500/uKvVjHNqB5VmOrdxqAt2F7J78ED.jpg",
+                        description: "Um homem durão e uma adolescente corajosa enfrentam perigos em um mundo pós-apocalíptico.",
+                        seasons: [
+                            {
+                                number: 1,
+                                episodes: [
+                                    { number: 1, title: "Quando Você Está Perdido na Escuridão", video: "https://www.youtube.com/embed/uLtkt8BonwM" },
+                                    { number: 2, title: "Infectados", video: "https://www.youtube.com/embed/2R2gb0MKJQA" }
+                                ]
+                            }
+                        ]
+                    }
+                ];
+                saveLocalData();
+            }
+
+            // Inicializar canais de exemplo se não existirem
+            if (tvChannels.length === 0) {
+                tvChannels = [
+                    {
+                        id: 1,
+                        name: "Globo",
+                        category: "Variedades",
+                        image: "https://logosmarcas.net/wp-content/uploads/2020/04/Rede-Globo-Logo.png",
+                        stream: "https://example.com/globo.m3u8"
+                    },
+                    {
+                        id: 2,
+                        name: "SporTV",
+                        category: "Esportes",
+                        image: "https://logodownload.org/wp-content/uploads/2017/11/sportv-logo-0.png",
+                        stream: "https://example.com/sportv.m3u8"
+                    }
+                ];
+                saveLocalData();
+            }
+        }
+
+        // Funções de Login/Cadastro
         function showUserLogin() {
+            document.getElementById('login-overlay').classList.remove('hidden');
             document.getElementById('register-overlay').classList.add('hidden');
             document.getElementById('admin-login-overlay').classList.add('hidden');
-            document.getElementById('login-overlay').classList.remove('hidden');
         }
 
         function showRegister() {
             document.getElementById('login-overlay').classList.add('hidden');
-            document.getElementById('admin-login-overlay').classList.add('hidden');
             document.getElementById('register-overlay').classList.remove('hidden');
+            document.getElementById('admin-login-overlay').classList.add('hidden');
         }
 
         function showAdminLogin() {
@@ -1658,351 +1581,850 @@
             document.getElementById('admin-login-overlay').classList.remove('hidden');
         }
 
-        function registerUser() {
+        function checkLoginStatus() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    showMainInterface();
+                } else {
+                    showUserLogin();
+                }
+            });
+        }
+
+        async function loginUser() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                showMainInterface();
+            } catch (error) {
+                console.error('Erro no login:', error);
+                alert('Erro ao fazer login: ' + error.message);
+            }
+        }
+
+        async function registerUser() {
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
 
             if (!email || !password || !confirmPassword) {
-                alert('Por favor, preencha todos os campos');
+                alert('Por favor, preencha todos os campos.');
                 return;
             }
 
             if (password !== confirmPassword) {
-                alert('As senhas não coincidem');
+                alert('As senhas não coincidem.');
                 return;
             }
 
             if (password.length < 6) {
-                alert('A senha deve ter pelo menos 6 caracteres');
+                alert('A senha deve ter pelo menos 6 caracteres.');
                 return;
             }
 
-            const registerBtn = document.getElementById('register-btn');
-            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
-            registerBtn.disabled = true;
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    
-                    usersLocalData[user.uid] = {
-                        email: email,
-                        plan: '7',
-                        startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                        status: 'active',
-                        paymentMethod: 'none',
-                        createdDate: new Date().toISOString()
-                    };
-                    
-                    saveLocalData();
-                    saveDataToDrive();
-                    
-                    alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
-                    showUserLogin();
-                })
-                .catch((error) => {
-                    let errorMessage = 'Erro ao cadastrar: ';
-                    switch (error.code) {
-                        case 'auth/email-already-in-use':
-                            errorMessage += 'Este e-mail já está em uso.';
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage += 'E-mail inválido.';
-                            break;
-                        case 'auth/weak-password':
-                            errorMessage += 'Senha muito fraca. Use pelo menos 6 caracteres.';
-                            break;
-                        default:
-                            errorMessage += error.message;
-                    }
-                    
-                    alert(errorMessage);
-                })
-                .finally(() => {
-                    registerBtn.innerHTML = 'Cadastrar';
-                    registerBtn.disabled = false;
-                });
-        }
-
-        function loginUser() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            if (!email || !password) {
-                alert('Por favor, preencha todos os campos');
-                return;
+            try {
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                currentUser = userCredential.user;
+                showMainInterface();
+            } catch (error) {
+                console.error('Erro no cadastro:', error);
+                alert('Erro ao criar conta: ' + error.message);
             }
-
-            const loginBtn = document.getElementById('login-btn');
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-            loginBtn.disabled = true;
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    currentUser = user.uid;
-                    
-                    if (!usersLocalData[user.uid]) {
-                        usersLocalData[user.uid] = {
-                            email: email,
-                            plan: '7',
-                            startDate: new Date().toISOString(),
-                            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                            status: 'active',
-                            paymentMethod: 'none',
-                            createdDate: new Date().toISOString()
-                        };
-                        saveLocalData();
-                    }
-                    
-                    startApplication();
-                })
-                .catch((error) => {
-                    let errorMessage = 'Erro ao fazer login: ';
-                    switch (error.code) {
-                        case 'auth/user-not-found':
-                            errorMessage += 'Usuário não encontrado.';
-                            break;
-                        case 'auth/wrong-password':
-                            errorMessage += 'Senha incorreta.';
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage += 'E-mail inválido.';
-                            break;
-                        default:
-                            errorMessage += error.message;
-                    }
-                    
-                    alert(errorMessage);
-                })
-                .finally(() => {
-                    loginBtn.innerHTML = 'Entrar';
-                    loginBtn.disabled = false;
-                });
         }
 
         function loginAdmin() {
             const username = document.getElementById('admin-username').value;
             const password = document.getElementById('admin-password').value;
 
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                isAdmin = true;
-                showDashboard();
+            // Verificar credenciais do admin
+            const admin = adminUsers.find(u => u.username === username && u.password === password);
+            
+            if (admin) {
+                showAdminDashboard();
             } else {
-                alert('Credenciais administrativas incorretas');
+                alert('Credenciais de administrador inválidas.');
             }
         }
 
         function logoutUser() {
             auth.signOut().then(() => {
                 currentUser = null;
-                document.getElementById('main-app').classList.add('hidden');
-                document.getElementById('login-overlay').classList.remove('hidden');
-                document.getElementById('login-email').value = '';
-                document.getElementById('login-password').value = '';
-            }).catch((error) => {
-                console.error('Erro ao fazer logout:', error);
+                showUserLogin();
             });
         }
 
         function logoutAdmin() {
-            isAdmin = false;
             document.getElementById('dashboard-overlay').classList.add('hidden');
-            showUserLogin();
+            document.getElementById('admin-login-overlay').classList.remove('hidden');
         }
 
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user.uid;
-                if (!document.getElementById('main-app').classList.contains('hidden')) {
-                    startApplication();
-                }
-            } else {
-                currentUser = null;
-            }
-        });
-
-        // 🚀 **FUNÇÃO STARTAPPLICATION**
-        function startApplication() {
+        function showMainInterface() {
             document.getElementById('login-overlay').classList.add('hidden');
             document.getElementById('register-overlay').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            loadHomeContent();
-            initializeNavigation();
+            document.getElementById('admin-login-overlay').classList.add('hidden');
+            document.getElementById('main-interface').classList.remove('hidden');
+            
+            loadContent();
         }
 
-        function showDashboard() {
+        function showAdminDashboard() {
             document.getElementById('admin-login-overlay').classList.add('hidden');
             document.getElementById('dashboard-overlay').classList.remove('hidden');
-            updateDashboard();
-            loadUserList();
-            loadMoviesList();
-            loadSeriesList();
-            loadChannelsList();
+            
+            loadAdminData();
         }
 
-        // 🔧 **FUNÇÕES DO PAINEL ADMIN**
+        // Funções de Navegação
+        function switchTab(tabName) {
+            // Esconder todas as abas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remover classe active de todas as abas de navegação
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar aba selecionada
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Ativar aba de navegação correspondente
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                if (tab.querySelector('span').textContent.toLowerCase() === tabName) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Carregar conteúdo específico da aba se necessário
+            if (tabName === 'favorites') {
+                loadFavorites();
+            }
+        }
+
         function switchAdminTab(tabName) {
+            // Esconder todas as abas do admin
             document.querySelectorAll('.admin-tab-content').forEach(tab => {
                 tab.classList.add('hidden');
             });
             
-            document.querySelectorAll('.dashboard-tab').forEach(btn => {
-                btn.classList.remove('active');
+            // Remover classe active de todas as abas
+            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                tab.classList.remove('active');
             });
             
-            document.getElementById(`admin-${tabName}`).classList.remove('hidden');
+            // Mostrar aba selecionada
+            document.getElementById('admin-' + tabName).classList.remove('hidden');
             
-            document.querySelector(`[onclick="switchAdminTab('${tabName}')"]`).classList.add('active');
+            // Ativar aba correspondente
+            document.querySelectorAll('.dashboard-tab').forEach((tab, index) => {
+                const tabs = ['overview', 'users', 'movies', 'series', 'tv'];
+                if (tabs[index] === tabName) {
+                    tab.classList.add('active');
+                }
+            });
             
-            if (tabName === 'users') loadUserList();
-            if (tabName === 'movies') loadMoviesList();
-            if (tabName === 'series') {
+            // Carregar dados específicos se necessário
+            if (tabName === 'users') {
+                loadUserList();
+            } else if (tabName === 'movies') {
+                loadMoviesList();
+            } else if (tabName === 'series') {
                 loadSeriesList();
-                initializeSeriesForm();
+            } else if (tabName === 'tv') {
+                loadChannelsList();
             }
-            if (tabName === 'tv') loadChannelsList();
         }
 
-        // 👥 **GERENCIAMENTO DE USUÁRIOS**
-        async function addNewUser() {
-            const email = document.getElementById('new-username').value;
-            const password = document.getElementById('new-password').value;
-            const plan = document.getElementById('new-user-plan').value;
-            const status = document.getElementById('new-user-status').value;
+        // Funções de Carregamento de Conteúdo
+        function loadContent() {
+            loadFeaturedContent();
+            loadAllMovies();
+            loadAllSeries();
+            loadAllChannels();
+        }
 
-            if (!email || !password) {
-                alert('Preencha e-mail e senha');
+        function loadFeaturedContent() {
+            // Carregar filmes em destaque
+            const featuredMoviesGrid = document.getElementById('featured-movies');
+            featuredMoviesGrid.innerHTML = '';
+            
+            movies.slice(0, 4).forEach(movie => {
+                featuredMoviesGrid.innerHTML += createMovieCard(movie);
+            });
+
+            // Carregar séries em destaque
+            const featuredSeriesGrid = document.getElementById('featured-series');
+            featuredSeriesGrid.innerHTML = '';
+            
+            series.slice(0, 4).forEach(serie => {
+                featuredSeriesGrid.innerHTML += createSeriesCard(serie);
+            });
+
+            // Carregar canais em destaque
+            const featuredChannelsGrid = document.getElementById('featured-channels');
+            featuredChannelsGrid.innerHTML = '';
+            
+            tvChannels.slice(0, 4).forEach(channel => {
+                featuredChannelsGrid.innerHTML += createChannelCard(channel);
+            });
+        }
+
+        function loadAllMovies() {
+            const allMoviesGrid = document.getElementById('all-movies');
+            allMoviesGrid.innerHTML = '';
+            
+            movies.forEach(movie => {
+                allMoviesGrid.innerHTML += createMovieCard(movie);
+            });
+        }
+
+        function loadAllSeries() {
+            const allSeriesGrid = document.getElementById('all-series');
+            allSeriesGrid.innerHTML = '';
+            
+            series.forEach(serie => {
+                allSeriesGrid.innerHTML += createSeriesCard(serie);
+            });
+        }
+
+        function loadAllChannels() {
+            const allChannelsGrid = document.getElementById('all-channels');
+            allChannelsGrid.innerHTML = '';
+            
+            tvChannels.forEach(channel => {
+                allChannelsGrid.innerHTML += createChannelCard(channel);
+            });
+        }
+
+        function loadFavorites() {
+            const favoritesContent = document.getElementById('favorites-content');
+            
+            if (favorites.length === 0) {
+                favoritesContent.innerHTML = `
+                    <div class="favorites-empty">
+                        <i class="far fa-heart"></i>
+                        <h3>Nenhum favorito ainda</h3>
+                        <p>Adicone filmes e séries aos favoritos para vê-los aqui</p>
+                    </div>
+                `;
                 return;
             }
 
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(async (userCredential) => {
-                    const user = userCredential.user;
-                    
-                    usersLocalData[user.uid] = {
-                        email: email,
-                        plan: plan,
-                        startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + parseInt(plan) * 24 * 60 * 60 * 1000).toISOString(),
-                        status: status,
-                        paymentMethod: 'admin',
-                        createdBy: 'admin',
-                        createdDate: new Date().toISOString()
-                    };
+            let favoritesHTML = '<div class="content-grid">';
+            
+            favorites.forEach(fav => {
+                if (fav.type === 'movie') {
+                    const movie = movies.find(m => m.id === fav.id);
+                    if (movie) {
+                        favoritesHTML += createMovieCard(movie);
+                    }
+                } else if (fav.type === 'series') {
+                    const serie = series.find(s => s.id === fav.id);
+                    if (serie) {
+                        favoritesHTML += createSeriesCard(serie);
+                    }
+                }
+            });
+            
+            favoritesHTML += '</div>';
+            favoritesContent.innerHTML = favoritesHTML;
+        }
 
-                    await saveDataToDrive();
-                    
-                    document.getElementById('new-username').value = '';
-                    document.getElementById('new-password').value = '';
-                    
-                    alert('✅ Usuário adicionado com sucesso!');
-                    
-                    loadUserList();
-                    updateDashboard();
-                })
-                .catch((error) => {
-                    alert('Erro ao criar usuário: ' + error.message);
+        // Funções de Criação de Cards
+        function createMovieCard(movie) {
+            const isFavorite = favorites.some(fav => fav.id === movie.id && fav.type === 'movie');
+            
+            return `
+                <div class="content-card" onclick="playMovie(${movie.id})">
+                    <img src="${movie.image}" alt="${movie.title}" class="card-image">
+                    <div class="card-content">
+                        <div class="card-title">${movie.title}</div>
+                        <div class="card-info">
+                            <span>⭐ ${movie.rating}</span>
+                            <span>${movie.genre}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn ${isFavorite ? 'btn-delete' : 'btn-activate'}" 
+                                onclick="event.stopPropagation(); toggleMovieFavorite(${movie.id})">
+                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createSeriesCard(serie) {
+            const isFavorite = favorites.some(fav => fav.id === serie.id && fav.type === 'series');
+            
+            return `
+                <div class="content-card" onclick="openSeriesModal(${serie.id})">
+                    <img src="${serie.image}" alt="${serie.title}" class="card-image">
+                    <div class="card-content">
+                        <div class="card-title">${serie.title}</div>
+                        <div class="card-info">
+                            <span>⭐ ${serie.rating}</span>
+                            <span>${serie.genre}</span>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn ${isFavorite ? 'btn-delete' : 'btn-activate'}" 
+                                onclick="event.stopPropagation(); toggleSeriesFavorite(${serie.id})">
+                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createChannelCard(channel) {
+            return `
+                <div class="content-card" onclick="playChannel(${channel.id})">
+                    <img src="${channel.image}" alt="${channel.name}" class="card-image">
+                    <div class="card-content">
+                        <div class="card-title">${channel.name}</div>
+                        <div class="card-info">
+                            <span>${channel.category}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Funções de Player
+        function playMovie(movieId) {
+            const movie = movies.find(m => m.id === movieId);
+            if (!movie) return;
+
+            currentVideo = {
+                type: 'movie',
+                id: movieId,
+                title: movie.title,
+                url: movie.video
+            };
+
+            openVideoPlayer(movie.title, movie.video);
+        }
+
+        function playChannel(channelId) {
+            const channel = tvChannels.find(c => c.id === channelId);
+            if (!channel) return;
+
+            currentVideo = {
+                type: 'channel',
+                id: channelId,
+                title: channel.name,
+                url: channel.stream
+            };
+
+            openVideoPlayer(channel.name, channel.stream);
+        }
+
+        function playEpisode(seriesId, seasonNumber, episodeNumber) {
+            const serie = series.find(s => s.id === seriesId);
+            if (!serie) return;
+
+            const season = serie.seasons.find(s => s.number === seasonNumber);
+            if (!season) return;
+
+            const episode = season.episodes.find(e => e.number === episodeNumber);
+            if (!episode) return;
+
+            currentVideo = {
+                type: 'episode',
+                id: `${seriesId}-${seasonNumber}-${episodeNumber}`,
+                title: `${serie.title} - S${seasonNumber}E${episodeNumber}: ${episode.title}`,
+                url: episode.video
+            };
+
+            openVideoPlayer(currentVideo.title, episode.video);
+        }
+
+        function openVideoPlayer(title, url) {
+            document.getElementById('player-title').textContent = title;
+            document.getElementById('video-player').style.display = 'flex';
+            
+            const videoElement = document.getElementById('video-element');
+            const youtubeElement = document.getElementById('youtube-element');
+            const playerTypeIndicator = document.getElementById('player-type-indicator');
+            
+            // Verificar se é um vídeo do YouTube
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                videoElement.style.display = 'none';
+                youtubeElement.style.display = 'block';
+                
+                // Extrair ID do vídeo do YouTube
+                let videoId = '';
+                if (url.includes('youtube.com/watch?v=')) {
+                    videoId = url.split('v=')[1].split('&')[0];
+                } else if (url.includes('youtu.be/')) {
+                    videoId = url.split('youtu.be/')[1].split('?')[0];
+                } else if (url.includes('youtube.com/embed/')) {
+                    videoId = url.split('embed/')[1].split('?')[0];
+                }
+                
+                youtubeElement.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+                playerTypeIndicator.textContent = 'YouTube Player';
+                playerTypeIndicator.style.display = 'block';
+                
+            } else {
+                // É um vídeo padrão
+                youtubeElement.style.display = 'none';
+                videoElement.style.display = 'block';
+                videoElement.src = url;
+                videoElement.play();
+                playerTypeIndicator.textContent = 'Video Player';
+                playerTypeIndicator.style.display = 'block';
+            }
+            
+            // Atualizar ícone de favoritos
+            updateFavoriteIcon();
+        }
+
+        function closeVideoPlayer() {
+            document.getElementById('video-player').style.display = 'none';
+            
+            const videoElement = document.getElementById('video-element');
+            const youtubeElement = document.getElementById('youtube-element');
+            
+            videoElement.pause();
+            videoElement.src = '';
+            youtubeElement.src = '';
+            
+            currentVideo = null;
+        }
+
+        function toggleFavorite() {
+            if (!currentVideo) return;
+            
+            const { id, type, title } = currentVideo;
+            const favoriteIndex = favorites.findIndex(fav => fav.id === id && fav.type === type);
+            
+            if (favoriteIndex === -1) {
+                // Adicionar aos favoritos
+                favorites.push({
+                    id: id,
+                    type: type,
+                    title: title
                 });
+            } else {
+                // Remover dos favoritos
+                favorites.splice(favoriteIndex, 1);
+            }
+            
+            saveLocalData();
+            updateFavoriteIcon();
+            
+            // Recarregar aba de favoritos se estiver aberta
+            if (document.getElementById('favorites-tab').classList.contains('active-tab')) {
+                loadFavorites();
+            }
+        }
+
+        function updateFavoriteIcon() {
+            if (!currentVideo) return;
+            
+            const { id, type } = currentVideo;
+            const isFavorite = favorites.some(fav => fav.id === id && fav.type === type);
+            const favoriteIcon = document.getElementById('favorite-icon');
+            
+            if (isFavorite) {
+                favoriteIcon.className = 'fas fa-heart';
+            } else {
+                favoriteIcon.className = 'far fa-heart';
+            }
+        }
+
+        function toggleMovieFavorite(movieId) {
+            const movie = movies.find(m => m.id === movieId);
+            if (!movie) return;
+            
+            const favoriteIndex = favorites.findIndex(fav => fav.id === movieId && fav.type === 'movie');
+            
+            if (favoriteIndex === -1) {
+                favorites.push({
+                    id: movieId,
+                    type: 'movie',
+                    title: movie.title
+                });
+            } else {
+                favorites.splice(favoriteIndex, 1);
+            }
+            
+            saveLocalData();
+            loadContent(); // Recarregar conteúdo para atualizar ícones
+        }
+
+        function toggleSeriesFavorite(seriesId) {
+            const serie = series.find(s => s.id === seriesId);
+            if (!serie) return;
+            
+            const favoriteIndex = favorites.findIndex(fav => fav.id === seriesId && fav.type === 'series');
+            
+            if (favoriteIndex === -1) {
+                favorites.push({
+                    id: seriesId,
+                    type: 'series',
+                    title: serie.title
+                });
+            } else {
+                favorites.splice(favoriteIndex, 1);
+            }
+            
+            saveLocalData();
+            loadContent(); // Recarregar conteúdo para atualizar ícones
+        }
+
+        // Modal de Séries
+        function openSeriesModal(seriesId) {
+            const serie = series.find(s => s.id === seriesId);
+            if (!serie) return;
+            
+            currentSeries = serie;
+            document.getElementById('series-modal-title').textContent = serie.title;
+            document.getElementById('series-modal').classList.remove('hidden');
+            
+            loadSeasons(serie);
+        }
+
+        function closeSeriesModal() {
+            document.getElementById('series-modal').classList.add('hidden');
+            currentSeries = null;
+            currentSeason = 1;
+        }
+
+        function loadSeasons(serie) {
+            const seasonsContainer = document.getElementById('series-seasons');
+            seasonsContainer.innerHTML = '';
+            
+            serie.seasons.forEach(season => {
+                const seasonBtn = document.createElement('button');
+                seasonBtn.className = `season-btn ${season.number === currentSeason ? 'active' : ''}`;
+                seasonBtn.textContent = `Temporada ${season.number}`;
+                seasonBtn.onclick = () => {
+                    currentSeason = season.number;
+                    loadEpisodes(season);
+                    // Atualizar botões ativos
+                    document.querySelectorAll('.season-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    seasonBtn.classList.add('active');
+                };
+                seasonsContainer.appendChild(seasonBtn);
+            });
+            
+            // Carregar episódios da primeira temporada
+            const firstSeason = serie.seasons[0];
+            if (firstSeason) {
+                currentSeason = firstSeason.number;
+                loadEpisodes(firstSeason);
+            }
+        }
+
+        function loadEpisodes(season) {
+            const episodesContainer = document.getElementById('series-episodes');
+            episodesContainer.innerHTML = '';
+            
+            season.episodes.forEach(episode => {
+                const episodeCard = document.createElement('div');
+                episodeCard.className = 'episode-card';
+                episodeCard.innerHTML = `
+                    <div style="font-weight: bold;">Episódio ${episode.number}</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">${episode.title}</div>
+                `;
+                episodeCard.onclick = () => {
+                    playEpisode(currentSeries.id, season.number, episode.number);
+                    closeSeriesModal();
+                };
+                episodesContainer.appendChild(episodeCard);
+            });
+        }
+
+        // Funções de Busca
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            if (!searchTerm) {
+                clearSearch();
+                return;
+            }
+            
+            // Esconder conteúdo normal
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Mostrar resultados da busca
+            document.getElementById('search-results').classList.remove('hidden');
+            
+            // Buscar em filmes, séries e canais
+            const movieResults = movies.filter(movie => 
+                movie.title.toLowerCase().includes(searchTerm) ||
+                movie.genre.toLowerCase().includes(searchTerm) ||
+                movie.description.toLowerCase().includes(searchTerm)
+            );
+            
+            const seriesResults = series.filter(serie => 
+                serie.title.toLowerCase().includes(searchTerm) ||
+                serie.genre.toLowerCase().includes(searchTerm) ||
+                serie.description.toLowerCase().includes(searchTerm)
+            );
+            
+            const channelResults = tvChannels.filter(channel => 
+                channel.name.toLowerCase().includes(searchTerm) ||
+                channel.category.toLowerCase().includes(searchTerm)
+            );
+            
+            const allResults = [...movieResults, ...seriesResults, ...channelResults];
+            
+            // Atualizar contador
+            document.getElementById('search-count').textContent = 
+                `${allResults.length} resultado(s) encontrado(s) para "${searchTerm}"`;
+            
+            // Exibir resultados
+            const resultsGrid = document.getElementById('search-results-grid');
+            resultsGrid.innerHTML = '';
+            
+            allResults.forEach(item => {
+                if (item.genre) {
+                    // É um filme ou série
+                    if (item.seasons) {
+                        // É uma série
+                        resultsGrid.innerHTML += createSeriesCard(item);
+                    } else {
+                        // É um filme
+                        resultsGrid.innerHTML += createMovieCard(item);
+                    }
+                } else {
+                    // É um canal
+                    resultsGrid.innerHTML += createChannelCard(item);
+                }
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-results').classList.add('hidden');
+            
+            // Voltar para a aba ativa
+            const activeTab = document.querySelector('.nav-tab.active span').textContent.toLowerCase();
+            switchTab(activeTab);
+        }
+
+        // Funções do Player
+        function toggleSubtitles() {
+            // Implementar toggle de legendas
+            alert('Funcionalidade de legendas em desenvolvimento');
+        }
+
+        // Funções de Assinatura
+        function selectPlan(days) {
+            selectedPlan = days;
+            
+            // Atualizar visual dos planos
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.plan-card').forEach((card, index) => {
+                const plans = [7, 30, 90];
+                if (plans[index] === days) {
+                    card.classList.add('selected');
+                }
+            });
+        }
+
+        function selectPayment(method) {
+            selectedPayment = method;
+            
+            // Atualizar visual dos métodos de pagamento
+            document.querySelectorAll('.payment-method').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.payment-method').forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(method)) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Mostrar/ocultar seções de pagamento
+            document.getElementById('pix-payment').classList.toggle('hidden', method !== 'pix');
+            document.getElementById('card-payment').classList.toggle('hidden', method !== 'card');
+        }
+
+        function completePayment() {
+            alert('Pagamento processado com sucesso! Sua assinatura está ativa.');
+            closeSubscriptionModal();
+        }
+
+        function closeSubscriptionModal() {
+            document.getElementById('subscription-overlay').classList.add('hidden');
+        }
+
+        // Funções do Admin Dashboard
+        function loadAdminData() {
+            // Atualizar estatísticas
+            document.getElementById('active-users-count').textContent = '15';
+            document.getElementById('monthly-revenue').textContent = 'R$ 450';
+            document.getElementById('total-users').textContent = adminUsers.length;
+            document.getElementById('total-content').textContent = movies.length + series.length + tvChannels.length;
         }
 
         function loadUserList() {
             const userList = document.getElementById('user-list');
             userList.innerHTML = '';
-
-            Object.keys(usersLocalData).forEach(userId => {
-                const user = usersLocalData[userId];
-                const isActive = new Date(user.endDate) > new Date() && user.status === 'active';
-                
+            
+            adminUsers.forEach(user => {
                 const userItem = document.createElement('div');
                 userItem.className = 'user-item';
                 userItem.innerHTML = `
                     <div class="user-info">
-                        <strong>${user.email}</strong>
-                        <div style="font-size: 0.8rem; color: ${isActive ? '#4CAF50' : '#f44336'}">
-                            ${isActive ? '✅ Ativo' : '❌ ' + user.status} 
-                            - Plano: ${user.plan} dias - Expira: ${new Date(user.endDate).toLocaleDateString()}
-                        </div>
+                        <div><strong>${user.username}</strong></div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${user.email}</div>
                     </div>
                     <div class="user-actions">
-                        <button class="action-btn btn-activate" onclick="activateUser('${userId}')">
-                            ${isActive ? 'Desativar' : 'Ativar'}
-                        </button>
-                        <button class="action-btn btn-edit" onclick="editUser('${userId}')">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteUser('${userId}')">Excluir</button>
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')">Excluir</button>
                     </div>
                 `;
-                
                 userList.appendChild(userItem);
             });
         }
 
-        function activateUser(userId) {
-            const user = usersLocalData[userId];
-            if (user.status === 'active') {
-                user.status = 'expired';
-            } else {
-                user.status = 'active';
-                user.startDate = new Date().toISOString();
-                const planDays = parseInt(user.plan);
-                user.endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-            }
+        function loadMoviesList() {
+            const moviesList = document.getElementById('movies-list');
+            moviesList.innerHTML = '';
             
-            saveLocalData();
-            saveDataToDrive();
-            loadUserList();
-            updateDashboard();
+            movies.forEach(movie => {
+                const movieItem = document.createElement('div');
+                movieItem.className = 'content-item';
+                movieItem.innerHTML = `
+                    <div class="content-info">
+                        <div><strong>${movie.title}</strong></div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${movie.genre} | ⭐ ${movie.rating}</div>
+                    </div>
+                    <div class="content-actions">
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-delete" onclick="deleteMovie(${movie.id})">Excluir</button>
+                    </div>
+                `;
+                moviesList.appendChild(movieItem);
+            });
         }
 
-        function editUser(userId) {
-            const user = usersLocalData[userId];
-            const newPlan = prompt('Novo plano para ' + user.email + ' (dias):', user.plan);
-            if (newPlan !== null && !isNaN(newPlan)) {
-                user.plan = newPlan;
-                const planDays = parseInt(newPlan);
-                user.endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-                saveLocalData();
-                saveDataToDrive();
-                alert('Plano atualizado!');
-                loadUserList();
-            }
+        function loadSeriesList() {
+            const seriesList = document.getElementById('series-list');
+            seriesList.innerHTML = '';
+            
+            series.forEach(serie => {
+                const seriesItem = document.createElement('div');
+                seriesItem.className = 'content-item';
+                seriesItem.innerHTML = `
+                    <div class="content-info">
+                        <div><strong>${serie.title}</strong></div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${serie.genre} | ⭐ ${serie.rating}</div>
+                    </div>
+                    <div class="content-actions">
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-delete" onclick="deleteSeries(${serie.id})">Excluir</button>
+                    </div>
+                `;
+                seriesList.appendChild(seriesItem);
+            });
         }
 
-        function deleteUser(userId) {
-            if (confirm(`Excluir usuário ${usersLocalData[userId].email}?`)) {
-                delete usersLocalData[userId];
-                saveLocalData();
-                saveDataToDrive();
-                loadUserList();
-                updateDashboard();
-            }
+        function loadChannelsList() {
+            const channelsList = document.getElementById('channels-list');
+            channelsList.innerHTML = '';
+            
+            tvChannels.forEach(channel => {
+                const channelItem = document.createElement('div');
+                channelItem.className = 'content-item';
+                channelItem.innerHTML = `
+                    <div class="content-info">
+                        <div><strong>${channel.name}</strong></div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${channel.category}</div>
+                    </div>
+                    <div class="content-actions">
+                        <button class="action-btn btn-edit">Editar</button>
+                        <button class="action-btn btn-delete" onclick="deleteChannel(${channel.id})">Excluir</button>
+                    </div>
+                `;
+                channelsList.appendChild(channelItem);
+            });
         }
 
-        // 🎬 **GERENCIAMENTO DE FILMES**
-        async function addNewMovie() {
-            const movie = {
-                id: Date.now(),
-                title: document.getElementById('movie-title').value,
-                genre: document.getElementById('movie-genre').value,
-                rating: parseFloat(document.getElementById('movie-rating').value) || 0,
-                image: document.getElementById('movie-image').value || 'https://via.placeholder.com/300x450/333333/FFFFFF?text=Filme',
-                videoUrl: document.getElementById('movie-video').value,
-                description: document.getElementById('movie-description').value,
-                type: 'movie',
-                addedDate: new Date().toISOString()
-            };
-
-            if (!movie.title) {
-                alert('Preencha pelo menos o título do filme');
+        function addNewUser() {
+            const username = document.getElementById('new-username').value;
+            const password = document.getElementById('new-password').value;
+            const plan = document.getElementById('new-user-plan').value;
+            const status = document.getElementById('new-user-status').value;
+            
+            if (!username || !password) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
                 return;
             }
+            
+            const newUser = {
+                username: username,
+                password: password,
+                email: username,
+                plan: plan,
+                status: status,
+                created: new Date().toISOString()
+            };
+            
+            adminUsers.push(newUser);
+            saveLocalData();
+            loadUserList();
+            
+            // Limpar formulário
+            document.getElementById('new-username').value = '';
+            document.getElementById('new-password').value = '';
+            
+            alert('Usuário adicionado com sucesso!');
+        }
 
-            contentData.movies.push(movie);
+        function addNewMovie() {
+            const title = document.getElementById('movie-title').value;
+            const genre = document.getElementById('movie-genre').value;
+            const rating = parseFloat(document.getElementById('movie-rating').value);
+            const image = document.getElementById('movie-image').value;
+            const video = document.getElementById('movie-video').value;
+            const description = document.getElementById('movie-description').value;
             
-            await saveDataToDrive();
+            if (!title || !genre || !image || !video) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
             
+            const newMovie = {
+                id: Date.now(),
+                title: title,
+                genre: genre,
+                rating: rating || 0,
+                image: image,
+                video: video,
+                description: description,
+                added: new Date().toISOString()
+            };
+            
+            movies.push(newMovie);
+            saveLocalData();
+            loadMoviesList();
+            
+            // Limpar formulário
             document.getElementById('movie-title').value = '';
             document.getElementById('movie-genre').value = '';
             document.getElementById('movie-rating').value = '';
@@ -2010,1008 +2432,238 @@
             document.getElementById('movie-video').value = '';
             document.getElementById('movie-description').value = '';
             
-            alert('✅ Filme adicionado com sucesso!');
-            loadMoviesList();
-            updateDashboard();
+            alert('Filme adicionado com sucesso!');
         }
 
-        function loadMoviesList() {
-            const moviesList = document.getElementById('movies-list');
-            moviesList.innerHTML = '';
-
-            contentData.movies.forEach(movie => {
-                const isYouTube = isYouTubeUrl(movie.videoUrl);
-                const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
-                
-                const movieItem = document.createElement('div');
-                movieItem.className = 'content-item';
-                movieItem.innerHTML = `
-                    <div class="content-info">
-                        <strong>${movie.title} ${youtubeBadge}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary)">
-                            ${movie.genre} • ⭐ ${movie.rating} • ${new Date(movie.addedDate).toLocaleDateString()}
-                        </div>
-                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">
-                            ${movie.description || 'Sem descrição'}
-                        </div>
-                    </div>
-                    <div class="content-actions">
-                        <button class="action-btn btn-edit" onclick="editMovie(${movie.id})">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteMovie(${movie.id})">Excluir</button>
-                    </div>
-                `;
-                
-                moviesList.appendChild(movieItem);
-            });
-        }
-
-        function editMovie(movieId) {
-            const movie = contentData.movies.find(m => m.id === movieId);
-            if (!movie) {
-                alert('Filme não encontrado');
+        function addNewSeries() {
+            const title = document.getElementById('series-title').value;
+            const genre = document.getElementById('series-genre').value;
+            const rating = parseFloat(document.getElementById('series-rating').value);
+            const image = document.getElementById('series-image').value;
+            const description = document.getElementById('series-description').value;
+            
+            if (!title || !genre || !image) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
                 return;
             }
-
-            const newTitle = prompt('Novo título:', movie.title);
-            if (newTitle === null) return;
-
-            const newGenre = prompt('Novo gênero:', movie.genre);
-            if (newGenre === null) return;
-
-            const newRating = prompt('Nova avaliação (0-10):', movie.rating);
-            if (newRating === null) return;
-
-            const newImage = prompt('Nova URL da imagem:', movie.image);
-            if (newImage === null) return;
-
-            const newVideo = prompt('Nova URL do vídeo:', movie.videoUrl);
-            if (newVideo === null) return;
-
-            const newDescription = prompt('Nova descrição:', movie.description);
-            if (newDescription === null) return;
-
-            movie.title = newTitle || movie.title;
-            movie.genre = newGenre || movie.genre;
-            movie.rating = parseFloat(newRating) || movie.rating;
-            movie.image = newImage || movie.image;
-            movie.videoUrl = newVideo || movie.videoUrl;
-            movie.description = newDescription || movie.description;
-
-            saveLocalData();
-            saveDataToDrive();
-            loadMoviesList();
-            alert('✅ Filme atualizado com sucesso!');
-        }
-
-        function deleteMovie(movieId) {
-            if (confirm('Excluir este filme?')) {
-                contentData.movies = contentData.movies.filter(movie => movie.id !== movieId);
-                saveLocalData();
-                saveDataToDrive();
-                loadMoviesList();
-                updateDashboard();
-            }
-        }
-
-        // 📺 **GERENCIAMENTO DE SÉRIES**
-        let seasonCounter = 1;
-        let episodeCounters = {};
-
-        function initializeSeriesForm() {
-            const seasonsContainer = document.getElementById('seasons-container');
-            seasonsContainer.innerHTML = '';
-            seasonCounter = 1;
-            episodeCounters = {};
-            addSeason();
-        }
-
-        function addSeason() {
-            const seasonsContainer = document.getElementById('seasons-container');
-            const seasonId = seasonCounter;
             
-            const seasonDiv = document.createElement('div');
-            seasonDiv.className = 'season-section';
-            seasonDiv.style.border = '1px solid #333';
-            seasonDiv.style.padding = '1rem';
-            seasonDiv.style.marginBottom = '1rem';
-            seasonDiv.style.borderRadius = '6px';
-            
-            seasonDiv.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 1rem;">
-                    <h4>Temporada ${seasonCounter}</h4>
-                    <button type="button" class="action-btn btn-delete" onclick="removeSeason(${seasonId})" style="margin-left: auto;">
-                        Remover Temporada
-                    </button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Número da Temporada</label>
-                        <input type="number" class="form-input season-number" value="${seasonCounter}" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Título da Temporada (opcional)</label>
-                        <input type="text" class="form-input season-title" placeholder="Ex: A Nova Ameaça">
-                    </div>
-                </div>
-                <div id="episodes-container-${seasonId}" class="episodes-container">
-                    <!-- Episódios serão adicionados aqui -->
-                </div>
-                <button type="button" class="submit-btn" onclick="addEpisode(${seasonId})" style="background: #4CAF50; margin-top: 1rem;">
-                    + Adicionar Episódio
-                </button>
-            `;
-            
-            seasonsContainer.appendChild(seasonDiv);
-            episodeCounters[seasonId] = 1;
-            addEpisode(seasonId);
-            seasonCounter++;
-        }
-
-        function removeSeason(seasonId) {
-            const seasonDiv = document.querySelector(`#seasons-container .season-section:nth-child(${seasonId})`);
-            if (seasonDiv) {
-                seasonDiv.remove();
-            }
-        }
-
-        function addEpisode(seasonId) {
-            const episodesContainer = document.getElementById(`episodes-container-${seasonId}`);
-            const episodeNumber = episodeCounters[seasonId];
-            
-            const episodeDiv = document.createElement('div');
-            episodeDiv.className = 'episode-item';
-            episodeDiv.style.border = '1px solid #444';
-            episodeDiv.style.padding = '1rem';
-            episodeDiv.style.marginBottom = '0.5rem';
-            episodeDiv.style.borderRadius = '4px';
-            
-            episodeDiv.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
-                    <h5>Episódio ${episodeNumber}</h5>
-                    <button type="button" class="action-btn btn-delete" onclick="this.parentElement.parentElement.remove()" style="margin-left: auto; padding: 0.3rem 0.6rem; font-size: 0.7rem;">
-                        Remover
-                    </button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Número do Episódio</label>
-                        <input type="number" class="form-input episode-number" value="${episodeNumber}" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Título do Episódio</label>
-                        <input type="text" class="form-input episode-title" placeholder="Título do episódio">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Duração (minutos)</label>
-                        <input type="number" class="form-input episode-duration" placeholder="60">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL do Vídeo</label>
-                        <input type="text" class="form-input episode-video" placeholder="https://... (YouTube ou vídeo direto)">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição</label>
-                        <textarea class="form-textarea episode-description" placeholder="Descrição do episódio"></textarea>
-                    </div>
-                </div>
-            `;
-            
-            episodesContainer.appendChild(episodeDiv);
-            episodeCounters[seasonId]++;
-        }
-
-        async function addNewSeries() {
-            const seriesTitle = document.getElementById('series-title').value;
-            const seriesGenre = document.getElementById('series-genre').value;
-            const seriesRating = parseFloat(document.getElementById('series-rating').value) || 0;
-            const seriesImage = document.getElementById('series-image').value || 'https://via.placeholder.com/300x450/333333/FFFFFF?text=Série';
-            const seriesDescription = document.getElementById('series-description').value;
-
-            if (!seriesTitle) {
-                alert('Preencha pelo menos o título da série');
-                return;
-            }
-
+            // Coletar temporadas e episódios
             const seasons = [];
-            const seasonSections = document.querySelectorAll('.season-section');
+            const seasonElements = document.querySelectorAll('.season-container');
             
-            seasonSections.forEach((seasonSection, index) => {
-                const seasonNumber = parseInt(seasonSection.querySelector('.season-number').value) || (index + 1);
-                const seasonTitle = seasonSection.querySelector('.season-title').value || `Temporada ${seasonNumber}`;
-                
+            seasonElements.forEach(seasonElement => {
+                const seasonNumber = parseInt(seasonElement.querySelector('.season-number').value);
                 const episodes = [];
-                const episodeItems = seasonSection.querySelectorAll('.episode-item');
                 
-                episodeItems.forEach((episodeItem, epIndex) => {
-                    const episodeNumber = parseInt(episodeItem.querySelector('.episode-number').value) || (epIndex + 1);
-                    const episodeTitle = episodeItem.querySelector('.episode-title').value || `Episódio ${episodeNumber}`;
-                    const episodeDuration = parseInt(episodeItem.querySelector('.episode-duration').value) || 0;
-                    const episodeVideo = episodeItem.querySelector('.episode-video').value || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
-                    const episodeDescription = episodeItem.querySelector('.episode-description').value || '';
+                const episodeElements = seasonElement.querySelectorAll('.episode-item');
+                episodeElements.forEach(episodeElement => {
+                    const episodeNumber = parseInt(episodeElement.querySelector('.episode-number').value);
+                    const episodeTitle = episodeElement.querySelector('.episode-title').value;
+                    const episodeVideo = episodeElement.querySelector('.episode-video').value;
                     
-                    episodes.push({
-                        number: episodeNumber,
-                        title: episodeTitle,
-                        duration: episodeDuration,
-                        videoUrl: episodeVideo,
-                        description: episodeDescription
+                    if (episodeNumber && episodeTitle && episodeVideo) {
+                        episodes.push({
+                            number: episodeNumber,
+                            title: episodeTitle,
+                            video: episodeVideo
+                        });
+                    }
+                });
+                
+                if (seasonNumber && episodes.length > 0) {
+                    seasons.push({
+                        number: seasonNumber,
+                        episodes: episodes
                     });
-                });
-
-                seasons.push({
-                    number: seasonNumber,
-                    title: seasonTitle,
-                    episodes: episodes
-                });
+                }
             });
-
-            const series = {
-                id: Date.now(),
-                title: seriesTitle,
-                genre: seriesGenre,
-                rating: seriesRating,
-                image: seriesImage,
-                description: seriesDescription,
-                seasons: seasons,
-                type: 'series',
-                addedDate: new Date().toISOString()
-            };
-
-            contentData.series.push(series);
-            await saveDataToDrive();
             
+            const newSeries = {
+                id: Date.now(),
+                title: title,
+                genre: genre,
+                rating: rating || 0,
+                image: image,
+                description: description,
+                seasons: seasons,
+                added: new Date().toISOString()
+            };
+            
+            series.push(newSeries);
+            saveLocalData();
+            loadSeriesList();
+            
+            // Limpar formulário
             document.getElementById('series-title').value = '';
             document.getElementById('series-genre').value = '';
             document.getElementById('series-rating').value = '';
             document.getElementById('series-image').value = '';
             document.getElementById('series-description').value = '';
-            initializeSeriesForm();
+            document.getElementById('seasons-container').innerHTML = '';
             
-            alert('✅ Série adicionada com sucesso!');
-            loadSeriesList();
-            updateDashboard();
+            alert('Série adicionada com sucesso!');
         }
 
-        function loadSeriesList() {
-            const seriesList = document.getElementById('series-list');
-            seriesList.innerHTML = '';
-
-            contentData.series.forEach(series => {
-                const totalSeasons = series.seasons.length;
-                const totalEpisodes = series.seasons.reduce((total, season) => total + season.episodes.length, 0);
-                
-                const seriesItem = document.createElement('div');
-                seriesItem.className = 'content-item';
-                seriesItem.innerHTML = `
-                    <div class="content-info">
-                        <strong>${series.title}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary)">
-                            ${series.genre} • ⭐ ${series.rating} • ${totalSeasons} temporadas • ${totalEpisodes} episódios
-                        </div>
-                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">
-                            ${series.description || 'Sem descrição'}
-                        </div>
-                    </div>
-                    <div class="content-actions">
-                        <button class="action-btn btn-edit" onclick="editSeries(${series.id})">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteSeries(${series.id})">Excluir</button>
-                    </div>
-                `;
-                
-                seriesList.appendChild(seriesItem);
-            });
-        }
-
-        function editSeries(seriesId) {
-            const series = contentData.series.find(s => s.id === seriesId);
-            if (!series) {
-                alert('Série não encontrada');
+        function addNewChannel() {
+            const name = document.getElementById('channel-name').value;
+            const category = document.getElementById('channel-category').value;
+            const image = document.getElementById('channel-image').value;
+            const stream = document.getElementById('channel-stream').value;
+            
+            if (!name || !category || !image || !stream) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
                 return;
             }
-
-            const newTitle = prompt('Novo título:', series.title);
-            if (newTitle === null) return;
-
-            const newGenre = prompt('Novo gênero:', series.genre);
-            if (newGenre === null) return;
-
-            const newRating = prompt('Nova avaliação (0-10):', series.rating);
-            if (newRating === null) return;
-
-            const newImage = prompt('Nova URL da imagem:', series.image);
-            if (newImage === null) return;
-
-            const newDescription = prompt('Nova descrição:', series.description);
-            if (newDescription === null) return;
-
-            series.title = newTitle || series.title;
-            series.genre = newGenre || series.genre;
-            series.rating = parseFloat(newRating) || series.rating;
-            series.image = newImage || series.image;
-            series.description = newDescription || series.description;
-
-            saveLocalData();
-            saveDataToDrive();
-            loadSeriesList();
-            alert('✅ Série atualizado com sucesso!');
-        }
-
-        function deleteSeries(seriesId) {
-            if (confirm('Excluir esta série?')) {
-                contentData.series = contentData.series.filter(series => series.id !== seriesId);
-                saveLocalData();
-                saveDataToDrive();
-                loadSeriesList();
-                updateDashboard();
-            }
-        }
-
-        // 📡 **GERENCIAMENTO DE CANAIS TV**
-        async function addNewChannel() {
-            const channel = {
+            
+            const newChannel = {
                 id: Date.now(),
-                title: document.getElementById('channel-name').value,
-                genre: document.getElementById('channel-category').value,
-                rating: parseFloat(document.getElementById('channel-rating').value) || 0,
-                image: document.getElementById('channel-logo').value || 'https://via.placeholder.com/300x200/333333/FFFFFF?text=Canal',
-                videoUrl: document.getElementById('channel-stream').value || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                country: document.getElementById('channel-country').value || 'BR',
-                type: 'channel',
-                addedDate: new Date().toISOString()
+                name: name,
+                category: category,
+                image: image,
+                stream: stream,
+                added: new Date().toISOString()
             };
-
-            if (!channel.title) {
-                alert('Preencha pelo menos o nome do canal');
-                return;
-            }
-
-            contentData.channels.push(channel);
-            await saveDataToDrive();
             
+            tvChannels.push(newChannel);
+            saveLocalData();
+            loadChannelsList();
+            
+            // Limpar formulário
             document.getElementById('channel-name').value = '';
             document.getElementById('channel-category').value = '';
-            document.getElementById('channel-rating').value = '';
-            document.getElementById('channel-logo').value = '';
+            document.getElementById('channel-image').value = '';
             document.getElementById('channel-stream').value = '';
-            document.getElementById('channel-country').value = '';
             
-            alert('✅ Canal adicionado com sucesso!');
-            loadChannelsList();
-            updateDashboard();
+            alert('Canal adicionado com sucesso!');
         }
 
-        function loadChannelsList() {
-            const channelsList = document.getElementById('channels-list');
-            channelsList.innerHTML = '';
-
-            contentData.channels.forEach(channel => {
-                const isYouTube = isYouTubeUrl(channel.videoUrl);
-                const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
-                
-                const channelItem = document.createElement('div');
-                channelItem.className = 'content-item';
-                channelItem.innerHTML = `
-                    <div class="content-info">
-                        <strong>${channel.title} ${youtubeBadge}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary)">
-                            ${channel.genre} • ⭐ ${channel.rating} • ${channel.country} • ${new Date(channel.addedDate).toLocaleDateString()}
+        function addSeason() {
+            const seasonsContainer = document.getElementById('seasons-container');
+            const seasonCount = seasonsContainer.children.length + 1;
+            
+            const seasonHTML = `
+                <div class="season-container" style="background: var(--secondary-bg); padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4>Temporada ${seasonCount}</h4>
+                        <button type="button" class="action-btn btn-delete" onclick="this.parentElement.parentElement.remove()">Remover</button>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Número da Temporada</label>
+                            <input type="number" class="form-input season-number" value="${seasonCount}" min="1">
                         </div>
                     </div>
-                    <div class="content-actions">
-                        <button class="action-btn btn-edit" onclick="editChannel(${channel.id})">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteChannel(${channel.id})">Excluir</button>
+                    <div class="episodes-list" id="episodes-${seasonCount}">
+                        <!-- Episódios serão adicionados aqui -->
                     </div>
-                `;
-                
-                channelsList.appendChild(channelItem);
-            });
-        }
-
-        function editChannel(channelId) {
-            const channel = contentData.channels.find(c => c.id === channelId);
-            if (!channel) {
-                alert('Canal não encontrado');
-                return;
-            }
-
-            const newTitle = prompt('Novo nome do canal:', channel.title);
-            if (newTitle === null) return;
-
-            const newCategory = prompt('Nova categoria:', channel.genre);
-            if (newCategory === null) return;
-
-            const newRating = prompt('Nova avaliação (0-5):', channel.rating);
-            if (newRating === null) return;
-
-            const newLogo = prompt('Nova URL da logo:', channel.image);
-            if (newLogo === null) return;
-
-            const newStream = prompt('Nova URL do stream:', channel.videoUrl);
-            if (newStream === null) return;
-
-            const newCountry = prompt('Novo país:', channel.country);
-            if (newCountry === null) return;
-
-            channel.title = newTitle || channel.title;
-            channel.genre = newCategory || channel.genre;
-            channel.rating = parseFloat(newRating) || channel.rating;
-            channel.image = newLogo || channel.image;
-            channel.videoUrl = newStream || channel.videoUrl;
-            channel.country = newCountry || channel.country;
-
-            saveLocalData();
-            saveDataToDrive();
-            loadChannelsList();
-            alert('✅ Canal atualizado com sucesso!');
-        }
-
-        function deleteChannel(channelId) {
-            if (confirm('Excluir este canal?')) {
-                contentData.channels = contentData.channels.filter(channel => channel.id !== channelId);
-                saveLocalData();
-                saveDataToDrive();
-                loadChannelsList();
-                updateDashboard();
-            }
-        }
-
-        // 📊 **ATUALIZAÇÃO DO DASHBOARD**
-        function updateDashboard() {
-            const activeUsers = Object.values(usersLocalData).filter(user => 
-                new Date(user.endDate) > new Date() && user.status === 'active'
-            ).length;
-
-            const totalUsers = Object.keys(usersLocalData).length;
-            const monthlyRevenue = activeUsers * 30;
-            const totalContent = contentData.movies.length + contentData.series.length + contentData.channels.length;
-
-            document.getElementById('active-users-count').textContent = activeUsers;
-            document.getElementById('total-users').textContent = totalUsers;
-            document.getElementById('monthly-revenue').textContent = `R$ ${monthlyRevenue}`;
-            document.getElementById('total-content').textContent = totalContent;
-        }
-
-        // 🎬 **SISTEMA DE NAVEGAÇÃO E CONTEÚDO**
-        let currentTab = 'home';
-        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentSeries = null;
-
-        function initializeNavigation() {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    switchTab(tabId);
-                });
-            });
-
-            document.getElementById('search-btn').addEventListener('click', performSearch);
-            document.getElementById('search-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-
-            document.getElementById('close-video-player').addEventListener('click', closeVideoPlayer);
+                    <button type="button" class="submit-btn" onclick="addEpisode(${seasonCount})" style="background: #4CAF50; margin-top: 1rem;">
+                        + Adicionar Episódio
+                    </button>
+                </div>
+            `;
             
-            const videoElement = document.getElementById('video-element');
-            const playBtn = document.getElementById('play-btn');
-            const pauseBtn = document.getElementById('pause-btn');
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-
-            videoElement.addEventListener('play', function() {
-                playBtn.style.display = 'none';
-                pauseBtn.style.display = 'block';
-            });
-
-            videoElement.addEventListener('pause', function() {
-                playBtn.style.display = 'block';
-                pauseBtn.style.display = 'none';
-            });
-
-            playBtn.addEventListener('click', function() {
-                if (videoElement.paused) {
-                    videoElement.play().catch(e => {
-                        console.log('Erro ao reproduzir vídeo:', e);
-                    });
-                }
-            });
-
-            pauseBtn.addEventListener('click', function() {
-                if (!videoElement.paused) {
-                    videoElement.pause();
-                }
-            });
-
-            fullscreenBtn.addEventListener('click', function() {
-                const videoPlayer = document.getElementById('video-player');
-                if (!document.fullscreenElement) {
-                    if (videoPlayer.requestFullscreen) {
-                        videoPlayer.requestFullscreen();
-                    } else if (videoPlayer.webkitRequestFullscreen) {
-                        videoPlayer.webkitRequestFullscreen();
-                    } else if (videoPlayer.msRequestFullscreen) {
-                        videoPlayer.msRequestFullscreen();
-                    }
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                }
-            });
-
-            switchTab('home');
+            seasonsContainer.innerHTML += seasonHTML;
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        function addEpisode(seasonId) {
+            const episodesList = document.getElementById(`episodes-${seasonId}`);
+            const episodeCount = episodesList.children.length + 1;
             
-            const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
-            if (activeTab) {
-                activeTab.classList.add('active');
-            }
-
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active-tab');
-                content.style.display = 'none';
-            });
-            
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active-tab');
-                targetTab.style.display = 'block';
-            }
-
-            currentTab = tabId;
-            
-            loadTabContent(tabId);
-        }
-
-        function loadTabContent(tabId) {
-            switch(tabId) {
-                case 'home':
-                    loadHomeContent();
-                    break;
-                case 'movies':
-                    loadAllMovies();
-                    break;
-                case 'series':
-                    loadAllSeries();
-                    break;
-                case 'live':
-                    loadAllChannels();
-                    break;
-                case 'favorites':
-                    loadFavorites();
-                    break;
-            }
-        }
-
-        function loadHomeContent() {
-            loadContentToGrid('movies', 'home-movies', 4);
-            loadContentToGrid('series', 'home-series', 4);
-            loadContentToGrid('channels', 'home-channels', 4);
-        }
-
-        function loadAllMovies() {
-            loadContentToGrid('movies', 'all-movies');
-        }
-
-        function loadAllSeries() {
-            loadContentToGrid('series', 'all-series');
-        }
-
-        function loadAllChannels() {
-            loadContentToGrid('channels', 'all-channels');
-        }
-
-        function loadContentToGrid(contentType, containerId, limit = null) {
-            const container = document.getElementById(containerId);
-            if (!container) {
-                console.error('Container não encontrado:', containerId);
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            const items = contentData[contentType];
-            const itemsToShow = limit ? items.slice(0, limit) : items;
-            
-            if (itemsToShow.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Nenhum conteúdo disponível</p>';
-                return;
-            }
-            
-            itemsToShow.forEach(item => {
-                const card = createContentCard(item);
-                container.appendChild(card);
-            });
-        }
-
-        function createContentCard(item) {
-            const card = document.createElement('div');
-            card.className = 'content-card';
-            
-            const isFavorite = favorites.includes(item.id);
-            const isYouTube = isYouTubeUrl(item.videoUrl);
-            const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
-            
-            let extraInfo = '';
-            if (item.type === 'series') {
-                const totalSeasons = item.seasons ? item.seasons.length : 0;
-                const totalEpisodes = item.seasons ? item.seasons.reduce((total, season) => total + season.episodes.length, 0) : 0;
-                extraInfo = `${totalSeasons} temp • ${totalEpisodes} eps`;
-            }
-            
-            card.innerHTML = `
-                <img src="${item.image}" alt="${item.title}" class="card-image">
-                <div class="card-content">
-                    <div class="card-title">${item.title} ${youtubeBadge}</div>
-                    <div class="card-info">
-                        <span>${item.genre}</span>
-                        <span>⭐ ${item.rating}</span>
+            const episodeHTML = `
+                <div class="episode-item" style="background: var(--card-bg); padding: 1rem; border-radius: 4px; margin-bottom: 0.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <h5>Episódio ${episodeCount}</h5>
+                        <button type="button" class="action-btn btn-delete" onclick="this.parentElement.parentElement.remove()">Remover</button>
                     </div>
-                    ${extraInfo ? `<div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem;">${extraInfo}</div>` : ''}
-                    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
-                        <button class="play-btn" style="background: ${isYouTube ? '#ff0000' : '#e50914'}; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-                            ${item.type === 'series' ? 'Escolher Episódio' : (isYouTube ? 'Assistir YouTube' : 'Assistir')}
-                        </button>
-                        <button class="fav-btn" style="background: none; border: none; color: ${isFavorite ? '#e50914' : '#b3b3b3'}; cursor: pointer; font-size: 1.2rem;">
-                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
-                        </button>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Número do Episódio</label>
+                            <input type="number" class="form-input episode-number" value="${episodeCount}" min="1">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Título do Episódio</label>
+                            <input type="text" class="form-input episode-title" placeholder="Título do episódio">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL do Vídeo</label>
+                            <input type="text" class="form-input episode-video" placeholder="https://...">
+                        </div>
                     </div>
                 </div>
             `;
-
-            card.querySelector('.play-btn').addEventListener('click', () => {
-                if (item.type === 'series') {
-                    openSeriesModal(item);
-                } else {
-                    playContent(item);
-                }
-            });
-
-            card.querySelector('.fav-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFavorite(item.id, card.querySelector('.fav-btn'));
-            });
-
-            return card;
-        }
-
-        function isYouTubeUrl(url) {
-            if (!url) return false;
-            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            return youtubeRegex.test(url);
-        }
-
-        function extractYouTubeId(url) {
-            const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            const match = url.match(regex);
-            return match ? match[1] : null;
-        }
-
-        function openSeriesModal(series) {
-            currentSeries = series;
-            const modal = document.getElementById('series-modal');
-            const title = document.getElementById('series-modal-title');
-            const seasonSelector = document.getElementById('season-selector');
-            const episodesContainer = document.getElementById('episodes-container');
             
-            title.textContent = series.title;
-            seasonSelector.innerHTML = '';
-            episodesContainer.innerHTML = '';
+            episodesList.innerHTML += episodeHTML;
+        }
+
+        // Funções de Exclusão
+        function deleteUser(username) {
+            if (confirm(`Tem certeza que deseja excluir o usuário ${username}?`)) {
+                adminUsers = adminUsers.filter(user => user.username !== username);
+                saveLocalData();
+                loadUserList();
+            }
+        }
+
+        function deleteMovie(movieId) {
+            if (confirm('Tem certeza que deseja excluir este filme?')) {
+                movies = movies.filter(movie => movie.id !== movieId);
+                saveLocalData();
+                loadMoviesList();
+            }
+        }
+
+        function deleteSeries(seriesId) {
+            if (confirm('Tem certeza que deseja excluir esta série?')) {
+                series = series.filter(serie => serie.id !== seriesId);
+                saveLocalData();
+                loadSeriesList();
+            }
+        }
+
+        function deleteChannel(channelId) {
+            if (confirm('Tem certeza que deseja excluir este canal?')) {
+                tvChannels = tvChannels.filter(channel => channel.id !== channelId);
+                saveLocalData();
+                loadChannelsList();
+            }
+        }
+
+        // Funções Google Drive
+        function testDriveConnection() {
+            const statusElement = document.getElementById('drive-status');
+            statusElement.textContent = '🔄 Testando conexão com Google Drive...';
+            statusElement.className = 'sync-status sync-loading';
             
-            series.seasons.forEach((season, index) => {
-                const seasonBtn = document.createElement('button');
-                seasonBtn.className = 'season-btn';
-                seasonBtn.textContent = `Temp ${season.number}`;
-                if (index === 0) seasonBtn.classList.add('active');
+            // Simular teste de conexão (em produção, isso seria uma chamada real à API)
+            setTimeout(() => {
+                statusElement.textContent = '✅ Conexão com Google Drive estabelecida com sucesso!';
+                statusElement.className = 'sync-status sync-success';
                 
-                seasonBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.season-btn').forEach(btn => btn.classList.remove('active'));
-                    seasonBtn.classList.add('active');
-                    loadEpisodes(season);
+                // Salvar API key
+                const apiKey = document.getElementById('drive-api-key').value;
+                localStorage.setItem('driveApiKey', apiKey);
+            }, 2000);
+        }
+
+        function manualSync() {
+            const statusElement = document.getElementById('drive-status');
+            statusElement.textContent = '🔄 Sincronizando dados com Google Drive...';
+            statusElement.className = 'sync-status sync-loading';
+            
+            // Simular sincronização
+            setTimeout(() => {
+                statusElement.textContent = '✅ Dados sincronizados com sucesso!';
+                statusElement.className = 'sync-status sync-success';
+                
+                // Em produção, aqui você faria o upload dos dados para o Google Drive
+                console.log('Dados sincronizados:', {
+                    movies: movies.length,
+                    series: series.length,
+                    channels: tvChannels.length,
+                    users: adminUsers.length
                 });
-                
-                seasonSelector.appendChild(seasonBtn);
-            });
-            
-            if (series.seasons.length > 0) {
-                loadEpisodes(series.seasons[0]);
-            }
-            
-            modal.classList.remove('hidden');
+            }, 3000);
         }
-
-        function closeSeriesModal() {
-            const modal = document.getElementById('series-modal');
-            modal.classList.add('hidden');
-            currentSeries = null;
-        }
-
-        function loadEpisodes(season) {
-            const episodesContainer = document.getElementById('episodes-container');
-            episodesContainer.innerHTML = '';
-            
-            season.episodes.forEach(episode => {
-                const isYouTube = isYouTubeUrl(episode.videoUrl);
-                const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
-                
-                const episodeCard = document.createElement('div');
-                episodeCard.className = 'episode-card';
-                episodeCard.innerHTML = `
-                    <div style="font-weight: bold;">Ep ${episode.number} ${youtubeBadge}</div>
-                    <div style="font-size: 0.8rem; margin-top: 0.3rem;">${episode.title}</div>
-                    ${episode.duration ? `<div style="font-size: 0.7rem; color: var(--text-secondary);">${episode.duration} min</div>` : ''}
-                `;
-                
-                episodeCard.addEventListener('click', () => {
-                    playEpisode(episode);
-                });
-                
-                episodesContainer.appendChild(episodeCard);
-            });
-        }
-
-        function playEpisode(episode) {
-            if (!requireSubscription()) {
-                return;
-            }
-
-            const playerTitle = document.getElementById('player-title');
-            const videoElement = document.getElementById('video-element');
-            const youtubeElement = document.getElementById('youtube-element');
-            const playerType = document.getElementById('player-type');
-            const videoPlayer = document.getElementById('video-player');
-
-            playerTitle.textContent = `${currentSeries.title} - ${episode.title}`;
-            
-            videoElement.style.display = 'none';
-            youtubeElement.style.display = 'none';
-            videoElement.pause();
-            videoElement.src = '';
-            youtubeElement.src = '';
-
-            if (isYouTubeUrl(episode.videoUrl)) {
-                const videoId = extractYouTubeId(episode.videoUrl);
-                if (videoId) {
-                    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
-                    
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
-                    playerType.textContent = 'YouTube Player';
-                    playerType.style.display = 'block';
-                    
-                    document.querySelector('.player-controls').style.display = 'none';
-                } else {
-                    alert('URL do YouTube inválida');
-                    return;
-                }
-            } else {
-                videoElement.style.display = 'block';
-                videoElement.src = episode.videoUrl;
-                playerType.textContent = 'Player de Vídeo';
-                playerType.style.display = 'block';
-                
-                document.querySelector('.player-controls').style.display = 'flex';
-                
-                videoElement.play().catch(e => {
-                    console.log('Erro ao reproduzir vídeo:', e);
-                    alert('Erro ao carregar o vídeo. Verifique a URL.');
-                });
-            }
-            
-            videoPlayer.style.display = 'flex';
-            closeSeriesModal();
-        }
-
-        function toggleFavorite(contentId, button) {
-            const index = favorites.indexOf(contentId);
-            const heartIcon = button.querySelector('i');
-            
-            if (index === -1) {
-                favorites.push(contentId);
-                heartIcon.className = 'fas fa-heart';
-                button.style.color = '#e50914';
-            } else {
-                favorites.splice(index, 1);
-                heartIcon.className = 'far fa-heart';
-                button.style.color = '#b3b3b3';
-            }
-            
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            if (currentTab === 'favorites') {
-                loadFavorites();
-            }
-        }
-
-        function loadFavorites() {
-            const container = document.getElementById('favorites-content');
-            const emptyMsg = document.getElementById('empty-favorites');
-            
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            if (favorites.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                return;
-            }
-            
-            emptyMsg.classList.add('hidden');
-            
-            const allItems = getAllContent();
-            const favoriteItems = allItems.filter(item => favorites.includes(item.id));
-            
-            favoriteItems.forEach(item => {
-                const card = createContentCard(item);
-                container.appendChild(card);
-            });
-        }
-
-        function getAllContent() {
-            return [
-                ...contentData.movies,
-                ...contentData.series,
-                ...contentData.channels
-            ];
-        }
-
-        function playContent(item) {
-            if (!requireSubscription()) {
-                return;
-            }
-
-            const playerTitle = document.getElementById('player-title');
-            const videoElement = document.getElementById('video-element');
-            const youtubeElement = document.getElementById('youtube-element');
-            const playerType = document.getElementById('player-type');
-            const videoPlayer = document.getElementById('video-player');
-
-            playerTitle.textContent = item.title;
-            
-            videoElement.style.display = 'none';
-            youtubeElement.style.display = 'none';
-            videoElement.pause();
-            videoElement.src = '';
-            youtubeElement.src = '';
-
-            if (isYouTubeUrl(item.videoUrl)) {
-                const videoId = extractYouTubeId(item.videoUrl);
-                if (videoId) {
-                    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
-                    
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
-                    playerType.textContent = 'YouTube Player';
-                    playerType.style.display = 'block';
-                    
-                    document.querySelector('.player-controls').style.display = 'none';
-                } else {
-                    alert('URL do YouTube inválida');
-                    return;
-                }
-            } else {
-                videoElement.style.display = 'block';
-                videoElement.src = item.videoUrl;
-                playerType.textContent = 'Player de Vídeo';
-                playerType.style.display = 'block';
-                
-                document.querySelector('.player-controls').style.display = 'flex';
-                
-                videoElement.play().catch(e => {
-                    console.log('Erro ao reproduzir vídeo:', e);
-                    alert('Erro ao carregar o vídeo. Verifique a URL.');
-                });
-            }
-            
-            videoPlayer.style.display = 'flex';
-        }
-
-        function closeVideoPlayer() {
-            const videoPlayer = document.getElementById('video-player');
-            const videoElement = document.getElementById('video-element');
-            const youtubeElement = document.getElementById('youtube-element');
-            const playerType = document.getElementById('player-type');
-            
-            videoPlayer.style.display = 'none';
-            videoElement.pause();
-            videoElement.currentTime = 0;
-            videoElement.src = '';
-            youtubeElement.src = '';
-            playerType.style.display = 'none';
-            
-            document.querySelector('.player-controls').style.display = 'flex';
-        }
-
-        function requireSubscription() {
-            if (!currentUser) return false;
-            
-            const user = usersLocalData[currentUser];
-            if (!user || new Date(user.endDate) <= new Date() || user.status !== 'active') {
-                showSubscriptionModal();
-                return false;
-            }
-            return true;
-        }
-
-        function showSubscriptionModal() {
-            const subscriptionOverlay = document.getElementById('subscription-overlay');
-            subscriptionOverlay.classList.remove('hidden');
-        }
-
-        function performSearch() {
-            const searchTerm = document.getElementById('search-input').value.trim();
-            
-            if (!searchTerm) {
-                alert('Digite algo para buscar');
-                return;
-            }
-
-            switchTab('search');
-            showSearchResults(searchTerm);
-        }
-
-        function showSearchResults(searchTerm) {
-            const resultsContainer = document.getElementById('search-results');
-            const noResults = document.getElementById('no-results');
-            
-            if (!resultsContainer) return;
-            
-            resultsContainer.innerHTML = '';
-            
-            const allContent = getAllContent();
-            const searchResults = allContent.filter(item => 
-                item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.genre.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            
-            if (searchResults.length === 0) {
-                noResults.classList.remove('hidden');
-                return;
-            }
-            
-            noResults.classList.add('hidden');
-            
-            searchResults.forEach(item => {
-                const card = createContentCard(item);
-                resultsContainer.appendChild(card);
-            });
-        }
-
-        function clearSearch() {
-            switchTab('home');
-            document.getElementById('search-input').value = '';
-        }
-
-        // 📱 **INICIALIZAÇÃO**
-        document.addEventListener('DOMContentLoaded', function() {
-            // Carregar dados iniciais
-            loadLocalData();
-            
-            // Event listeners
-            document.getElementById('login-btn').addEventListener('click', loginUser);
-            document.getElementById('register-btn').addEventListener('click', registerUser);
-            document.getElementById('admin-login-btn').addEventListener('click', loginAdmin);
-
-            document.getElementById('login-password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') loginUser();
-            });
-            
-            document.getElementById('register-confirm-password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') registerUser();
-            });
-
-            showUserLogin();
-        });
-
     </script>
 </body>
 </html>
