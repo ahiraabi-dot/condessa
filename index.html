@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Condessa IPTV - Assinatura</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --primary-bg: #121212;
@@ -102,6 +105,17 @@
         }
 
         .admin-link:hover {
+            color: var(--accent-yellow);
+        }
+
+        .register-link {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .register-link:hover {
             color: var(--accent-yellow);
         }
 
@@ -792,13 +806,35 @@
             <div class="logo">CONDESSA IPTV</div>
             <p style="margin-bottom: 2rem; color: var(--text-secondary);">Faça login para acessar o conteúdo</p>
             
-            <input type="text" id="login-username" class="login-input" placeholder="Usuário">
+            <input type="text" id="login-email" class="login-input" placeholder="E-mail">
             <input type="password" id="login-password" class="login-input" placeholder="Senha">
             
             <button id="login-btn" class="login-btn">Entrar</button>
             
+            <div class="register-link" onclick="showRegister()">
+                Não tem conta? Cadastre-se
+            </div>
+            
             <div class="admin-link" onclick="showAdminLogin()">
                 Acesso Administrativo
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Cadastro -->
+    <div id="register-overlay" class="login-overlay hidden">
+        <div class="login-modal">
+            <div class="logo">CONDESSA IPTV</div>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Crie sua conta</p>
+            
+            <input type="text" id="register-email" class="login-input" placeholder="E-mail">
+            <input type="password" id="register-password" class="login-input" placeholder="Senha (mínimo 6 caracteres)">
+            <input type="password" id="register-confirm-password" class="login-input" placeholder="Confirmar Senha">
+            
+            <button id="register-btn" class="login-btn">Cadastrar</button>
+            
+            <div class="admin-link" onclick="showUserLogin()">
+                Voltar para Login
             </div>
         </div>
     </div>
@@ -867,8 +903,8 @@
                 <h3>Adicionar Novo Usuário</h3>
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label">Usuário</label>
-                        <input type="text" id="new-username" class="form-input" placeholder="Nome de usuário">
+                        <label class="form-label">E-mail</label>
+                        <input type="text" id="new-username" class="form-input" placeholder="E-mail do usuário">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Senha</label>
@@ -1254,9 +1290,22 @@
     </div>
 
     <script>
-        // 🔐 **SISTEMA DE AUTENTICAÇÃO**
+        // 🔥 CONFIGURAÇÃO DO FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyCWS0jcIeAySuIaDSBqSe5MtQjDzfmfUsY",
+            authDomain: "condessa-c150b.firebaseapp.com",
+            projectId: "condessa-c150b",
+            storageBucket: "condessa-c150b.firebasestorage.app",
+            messagingSenderId: "563703688633",
+            appId: "1:563703688633:web:5c6d0db4e50a17341e5a68"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // 🔐 **SISTEMA DE AUTENTICAÇÃO ATUALIZADO**
         const ADMIN_CREDENTIALS = { username: '123', password: '123' };
-        let users = JSON.parse(localStorage.getItem('condessa_users')) || {};
         let currentUser = null;
         let isAdmin = false;
 
@@ -1267,26 +1316,24 @@
             channels: []
         };
 
+        // 👥 **SISTEMA DE USUÁRIOS ATUALIZADO**
+        let usersLocalData = JSON.parse(localStorage.getItem('condessa_users_local')) || {};
+
         // 🔧 **FUNÇÕES DO PAINEL ADMIN**
 
         function switchAdminTab(tabName) {
-            // Esconder todas as abas
             document.querySelectorAll('.admin-tab-content').forEach(tab => {
                 tab.classList.add('hidden');
             });
             
-            // Remover active de todos os botões
             document.querySelectorAll('.dashboard-tab').forEach(btn => {
                 btn.classList.remove('active');
             });
             
-            // Mostrar aba selecionada
             document.getElementById(`admin-${tabName}`).classList.remove('hidden');
             
-            // Ativar botão correspondente
             document.querySelector(`[onclick="switchAdminTab('${tabName}')"]`).classList.add('active');
             
-            // Atualizar conteúdo se necessário
             if (tabName === 'users') loadUserList();
             if (tabName === 'movies') loadMoviesList();
             if (tabName === 'series') {
@@ -1296,73 +1343,76 @@
             if (tabName === 'tv') loadChannelsList();
         }
 
-        // 👥 **GERENCIAMENTO DE USUÁRIOS**
+        // 👥 **GERENCIAMENTO DE USUÁRIOS ATUALIZADO**
 
         function addNewUser() {
-            const username = document.getElementById('new-username').value;
+            const email = document.getElementById('new-username').value;
             const password = document.getElementById('new-password').value;
             const plan = document.getElementById('new-user-plan').value;
             const status = document.getElementById('new-user-status').value;
 
-            if (!username || !password) {
-                alert('Preencha usuário e senha');
+            if (!email || !password) {
+                alert('Preencha e-mail e senha');
                 return;
             }
 
-            if (users[username]) {
-                alert('Usuário já existe');
-                return;
-            }
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    usersLocalData[user.uid] = {
+                        email: email,
+                        plan: plan,
+                        startDate: new Date().toISOString(),
+                        endDate: new Date(Date.now() + parseInt(plan) * 24 * 60 * 60 * 1000).toISOString(),
+                        status: status,
+                        paymentMethod: 'admin',
+                        createdBy: 'admin',
+                        createdDate: new Date().toISOString()
+                    };
 
-            const planDays = parseInt(plan);
-            const startDate = new Date().toISOString();
-            const endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-
-            users[username] = {
-                password: password,
-                plan: plan,
-                startDate: startDate,
-                endDate: endDate,
-                status: status,
-                paymentMethod: 'admin',
-                createdBy: 'admin'
-            };
-
-            localStorage.setItem('condessa_users', JSON.stringify(users));
-            
-            // Limpar formulário
-            document.getElementById('new-username').value = '';
-            document.getElementById('new-password').value = '';
-            
-            alert('✅ Usuário adicionado com sucesso!');
-            loadUserList();
-            updateDashboard();
+                    localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
+                    
+                    document.getElementById('new-username').value = '';
+                    document.getElementById('new-password').value = '';
+                    
+                    alert('✅ Usuário adicionado com sucesso!');
+                    loadUserList();
+                    updateDashboard();
+                })
+                .catch((error) => {
+                    console.error('Erro ao criar usuário:', error);
+                    alert('Erro ao criar usuário: ' + error.message);
+                });
         }
 
         function loadUserList() {
             const userList = document.getElementById('user-list');
             userList.innerHTML = '';
 
-            Object.keys(users).forEach(username => {
-                const user = users[username];
+            Object.keys(usersLocalData).forEach(userId => {
+                const user = usersLocalData[userId];
                 const isActive = new Date(user.endDate) > new Date() && user.status === 'active';
                 
                 const userItem = document.createElement('div');
                 userItem.className = 'user-item';
                 userItem.innerHTML = `
                     <div class="user-info">
-                        <strong>${username}</strong>
+                        <strong>${user.email}</strong>
                         <div style="font-size: 0.8rem; color: ${isActive ? '#4CAF50' : '#f44336'}">
                             ${isActive ? '✅ Ativo' : '❌ ' + user.status} 
                             - Plano: ${user.plan} dias - Expira: ${new Date(user.endDate).toLocaleDateString()}
                         </div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary)">
+                            ID: ${userId}
+                        </div>
                     </div>
                     <div class="user-actions">
-                        <button class="action-btn btn-activate" onclick="activateUser('${username}')">
+                        <button class="action-btn btn-activate" onclick="activateUser('${userId}')">
                             ${isActive ? 'Desativar' : 'Ativar'}
                         </button>
-                        <button class="action-btn btn-edit" onclick="editUser('${username}')">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteUser('${username}')">Excluir</button>
+                        <button class="action-btn btn-edit" onclick="editUser('${userId}')">Editar</button>
+                        <button class="action-btn btn-delete" onclick="deleteUser('${userId}')">Excluir</button>
                     </div>
                 `;
                 
@@ -1370,8 +1420,8 @@
             });
         }
 
-        function activateUser(username) {
-            const user = users[username];
+        function activateUser(userId) {
+            const user = usersLocalData[userId];
             if (user.status === 'active') {
                 user.status = 'expired';
             } else {
@@ -1381,28 +1431,31 @@
                 user.endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
             }
             
-            localStorage.setItem('condessa_users', JSON.stringify(users));
+            localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
             loadUserList();
             updateDashboard();
         }
 
-        function editUser(username) {
-            const user = users[username];
-            const newPassword = prompt('Nova senha para ' + username + ':', user.password);
-            if (newPassword !== null) {
-                user.password = newPassword;
-                localStorage.setItem('condessa_users', JSON.stringify(users));
-                alert('Senha atualizada!');
+        function editUser(userId) {
+            const user = usersLocalData[userId];
+            const newPlan = prompt('Novo plano para ' + user.email + ' (dias):', user.plan);
+            if (newPlan !== null && !isNaN(newPlan)) {
+                user.plan = newPlan;
+                const planDays = parseInt(newPlan);
+                user.endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
+                localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
+                alert('Plano atualizado!');
                 loadUserList();
             }
         }
 
-        function deleteUser(username) {
-            if (confirm(`Excluir usuário ${username}?`)) {
-                delete users[username];
-                localStorage.setItem('condessa_users', JSON.stringify(users));
+        function deleteUser(userId) {
+            if (confirm(`Excluir usuário ${usersLocalData[userId].email}?`)) {
+                delete usersLocalData[userId];
+                localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
                 loadUserList();
                 updateDashboard();
+                alert('Usuário removido dos dados locais. Para remover completamente, use o Firebase Console.');
             }
         }
 
@@ -1429,7 +1482,6 @@
             contentData.movies.push(movie);
             localStorage.setItem('condessa_content', JSON.stringify(contentData));
             
-            // Limpar formulário
             document.getElementById('movie-title').value = '';
             document.getElementById('movie-genre').value = '';
             document.getElementById('movie-rating').value = '';
@@ -1497,7 +1549,6 @@
             const newDescription = prompt('Nova descrição:', movie.description);
             if (newDescription === null) return;
 
-            // Atualizar filme
             movie.title = newTitle || movie.title;
             movie.genre = newGenre || movie.genre;
             movie.rating = parseFloat(newRating) || movie.rating;
@@ -1529,7 +1580,7 @@
             seasonsContainer.innerHTML = '';
             seasonCounter = 1;
             episodeCounters = {};
-            addSeason(); // Adiciona a primeira temporada automaticamente
+            addSeason();
         }
 
         function addSeason() {
@@ -1570,7 +1621,7 @@
             
             seasonsContainer.appendChild(seasonDiv);
             episodeCounters[seasonId] = 1;
-            addEpisode(seasonId); // Adiciona o primeiro episódio automaticamente
+            addEpisode(seasonId);
             seasonCounter++;
         }
 
@@ -1639,7 +1690,6 @@
                 return;
             }
 
-            // Coletar temporadas e episódios
             const seasons = [];
             const seasonSections = document.querySelectorAll('.season-section');
             
@@ -1688,7 +1738,6 @@
             contentData.series.push(series);
             localStorage.setItem('condessa_content', JSON.stringify(contentData));
             
-            // Limpar formulário
             document.getElementById('series-title').value = '';
             document.getElementById('series-genre').value = '';
             document.getElementById('series-rating').value = '';
@@ -1753,7 +1802,6 @@
             const newDescription = prompt('Nova descrição:', series.description);
             if (newDescription === null) return;
 
-            // Atualizar série
             series.title = newTitle || series.title;
             series.genre = newGenre || series.genre;
             series.rating = parseFloat(newRating) || series.rating;
@@ -1774,7 +1822,7 @@
             }
         }
 
-        // 📡 **GERENCIAMENTO DE CANAIS TV CORRIGIDO**
+        // 📡 **GERENCIAMENTO DE CANAIS TV**
 
         function addNewChannel() {
             const channel = {
@@ -1797,7 +1845,6 @@
             contentData.channels.push(channel);
             localStorage.setItem('condessa_content', JSON.stringify(contentData));
             
-            // Limpar formulário
             document.getElementById('channel-name').value = '';
             document.getElementById('channel-category').value = '';
             document.getElementById('channel-rating').value = '';
@@ -1837,7 +1884,6 @@
             });
         }
 
-        // 🔧 **FUNÇÃO EDITAR CANAL CORRIGIDA**
         function editChannel(channelId) {
             const channel = contentData.channels.find(c => c.id === channelId);
             if (!channel) {
@@ -1863,7 +1909,6 @@
             const newCountry = prompt('Novo país:', channel.country);
             if (newCountry === null) return;
 
-            // Atualizar canal
             channel.title = newTitle || channel.title;
             channel.genre = newCategory || channel.genre;
             channel.rating = parseFloat(newRating) || channel.rating;
@@ -1885,14 +1930,14 @@
             }
         }
 
-        // 📊 **ATUALIZAÇÃO DO DASHBOARD**
+        // 📊 **ATUALIZAÇÃO DO DASHBOARD ATUALIZADA**
 
         function updateDashboard() {
-            const activeUsers = Object.values(users).filter(user => 
+            const activeUsers = Object.values(usersLocalData).filter(user => 
                 new Date(user.endDate) > new Date() && user.status === 'active'
             ).length;
 
-            const totalUsers = Object.keys(users).length;
+            const totalUsers = Object.keys(usersLocalData).length;
             const monthlyRevenue = activeUsers * 30;
             const totalContent = contentData.movies.length + contentData.series.length + contentData.channels.length;
 
@@ -1902,38 +1947,148 @@
             document.getElementById('total-content').textContent = totalContent;
         }
 
-        // 🔐 **FUNÇÕES DE AUTENTICAÇÃO CORRIGIDAS**
+        // 🔐 **FUNÇÕES DE AUTENTICAÇÃO ATUALIZADAS**
 
         function showUserLogin() {
+            document.getElementById('register-overlay').classList.add('hidden');
             document.getElementById('admin-login-overlay').classList.add('hidden');
             document.getElementById('login-overlay').classList.remove('hidden');
         }
 
+        function showRegister() {
+            document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('admin-login-overlay').classList.add('hidden');
+            document.getElementById('register-overlay').classList.remove('hidden');
+        }
+
         function showAdminLogin() {
             document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('register-overlay').classList.add('hidden');
             document.getElementById('admin-login-overlay').classList.remove('hidden');
         }
 
-        function loginUser() {
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
+        function registerUser() {
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
 
-            if (!username || !password) {
+            if (!email || !password || !confirmPassword) {
                 alert('Por favor, preencha todos os campos');
                 return;
             }
 
-            const user = users[username];
-            if (user && user.password === password) {
-                if (new Date(user.endDate) > new Date() && user.status === 'active') {
-                    currentUser = username;
-                    startApplication();
-                } else {
-                    alert('Sua assinatura expirou. Por favor, renove.');
-                }
-            } else {
-                alert('Usuário não encontrado ou senha incorreta');
+            if (password !== confirmPassword) {
+                alert('As senhas não coincidem');
+                return;
             }
+
+            if (password.length < 6) {
+                alert('A senha deve ter pelo menos 6 caracteres');
+                return;
+            }
+
+            const registerBtn = document.getElementById('register-btn');
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
+            registerBtn.disabled = true;
+
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    
+                    usersLocalData[user.uid] = {
+                        email: email,
+                        plan: '7',
+                        startDate: new Date().toISOString(),
+                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                        status: 'active',
+                        paymentMethod: 'none',
+                        createdDate: new Date().toISOString()
+                    };
+                    
+                    localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
+                    
+                    alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
+                    showUserLogin();
+                })
+                .catch((error) => {
+                    let errorMessage = 'Erro ao cadastrar: ';
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            errorMessage += 'Este e-mail já está em uso.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage += 'E-mail inválido.';
+                            break;
+                        case 'auth/weak-password':
+                            errorMessage += 'Senha muito fraca. Use pelo menos 6 caracteres.';
+                            break;
+                        default:
+                            errorMessage += error.message;
+                    }
+                    
+                    alert(errorMessage);
+                })
+                .finally(() => {
+                    registerBtn.innerHTML = 'Cadastrar';
+                    registerBtn.disabled = false;
+                });
+        }
+
+        function loginUser() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                alert('Por favor, preencha todos os campos');
+                return;
+            }
+
+            const loginBtn = document.getElementById('login-btn');
+            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+            loginBtn.disabled = true;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    currentUser = user.uid;
+                    
+                    if (!usersLocalData[user.uid]) {
+                        usersLocalData[user.uid] = {
+                            email: email,
+                            plan: '7',
+                            startDate: new Date().toISOString(),
+                            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                            status: 'active',
+                            paymentMethod: 'none',
+                            createdDate: new Date().toISOString()
+                        };
+                        localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
+                    }
+                    
+                    startApplication();
+                })
+                .catch((error) => {
+                    let errorMessage = 'Erro ao fazer login: ';
+                    switch (error.code) {
+                        case 'auth/user-not-found':
+                            errorMessage += 'Usuário não encontrado.';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage += 'Senha incorreta.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage += 'E-mail inválido.';
+                            break;
+                        default:
+                            errorMessage += error.message;
+                    }
+                    
+                    alert(errorMessage);
+                })
+                .finally(() => {
+                    loginBtn.innerHTML = 'Entrar';
+                    loginBtn.disabled = false;
+                });
         }
 
         function loginAdmin() {
@@ -1949,12 +2104,15 @@
         }
 
         function logoutUser() {
-            currentUser = null;
-            document.getElementById('main-app').classList.add('hidden');
-            document.getElementById('login-overlay').classList.remove('hidden');
-            // Limpar campos de login
-            document.getElementById('login-username').value = '';
-            document.getElementById('login-password').value = '';
+            auth.signOut().then(() => {
+                currentUser = null;
+                document.getElementById('main-app').classList.add('hidden');
+                document.getElementById('login-overlay').classList.remove('hidden');
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+            }).catch((error) => {
+                console.error('Erro ao fazer logout:', error);
+            });
         }
 
         function logoutAdmin() {
@@ -1963,9 +2121,21 @@
             showUserLogin();
         }
 
-        // 🚀 **FUNÇÃO STARTAPPLICATION CORRIGIDA**
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user.uid;
+                if (!document.getElementById('main-app').classList.contains('hidden')) {
+                    startApplication();
+                }
+            } else {
+                currentUser = null;
+            }
+        });
+
+        // 🚀 **FUNÇÃO STARTAPPLICATION**
         function startApplication() {
             document.getElementById('login-overlay').classList.add('hidden');
+            document.getElementById('register-overlay').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
             loadHomeContent();
             initializeNavigation();
@@ -1981,14 +2151,13 @@
             loadChannelsList();
         }
 
-        // 🎬 **SISTEMA DE NAVEGAÇÃO E CONTEÚDO CORRIGIDO**
+        // 🎬 **SISTEMA DE NAVEGAÇÃO E CONTEÚDO**
 
         let currentTab = 'home';
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         let currentSeries = null;
 
         function initializeNavigation() {
-            // Event listeners para as abas do menu
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
@@ -1996,7 +2165,6 @@
                 });
             });
 
-            // Event listener para busca
             document.getElementById('search-btn').addEventListener('click', performSearch);
             document.getElementById('search-input').addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
@@ -2004,16 +2172,13 @@
                 }
             });
 
-            // Event listener do botão fechar do player
             document.getElementById('close-video-player').addEventListener('click', closeVideoPlayer);
             
-            // Configuração do player de vídeo
             const videoElement = document.getElementById('video-element');
             const playBtn = document.getElementById('play-btn');
             const pauseBtn = document.getElementById('pause-btn');
             const fullscreenBtn = document.getElementById('fullscreen-btn');
 
-            // Configurar controles do player
             videoElement.addEventListener('play', function() {
                 playBtn.style.display = 'none';
                 pauseBtn.style.display = 'block';
@@ -2059,12 +2224,10 @@
                 }
             });
 
-            // Carregar conteúdo inicial
             switchTab('home');
         }
 
         function switchTab(tabId) {
-            // Atualizar navegação visual
             document.querySelectorAll('.nav-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -2074,13 +2237,11 @@
                 activeTab.classList.add('active');
             }
 
-            // Atualizar conteúdo - esconder todas as abas primeiro
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.remove('active-tab');
                 content.style.display = 'none';
             });
             
-            // Mostrar apenas a aba atual
             const targetTab = document.getElementById(tabId);
             if (targetTab) {
                 targetTab.classList.add('active-tab');
@@ -2089,7 +2250,6 @@
 
             currentTab = tabId;
             
-            // Carregar conteúdo específico da aba
             loadTabContent(tabId);
         }
 
@@ -2162,7 +2322,6 @@
             const isYouTube = isYouTubeUrl(item.videoUrl);
             const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
             
-            // Texto adicional para séries
             let extraInfo = '';
             if (item.type === 'series') {
                 const totalSeasons = item.seasons ? item.seasons.length : 0;
@@ -2190,7 +2349,6 @@
                 </div>
             `;
 
-            // Event listeners
             card.querySelector('.play-btn').addEventListener('click', () => {
                 if (item.type === 'series') {
                     openSeriesModal(item);
@@ -2207,7 +2365,6 @@
             return card;
         }
 
-        // 🔥 **FUNÇÕES PARA YOUTUBE**
         function isYouTubeUrl(url) {
             if (!url) return false;
             const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
@@ -2220,8 +2377,6 @@
             return match ? match[1] : null;
         }
 
-        // 🎭 **SISTEMA DE SÉRIES COM TEMPORADAS E EPISÓDIOS**
-
         function openSeriesModal(series) {
             currentSeries = series;
             const modal = document.getElementById('series-modal');
@@ -2233,7 +2388,6 @@
             seasonSelector.innerHTML = '';
             episodesContainer.innerHTML = '';
             
-            // Criar botões de temporada
             series.seasons.forEach((season, index) => {
                 const seasonBtn = document.createElement('button');
                 seasonBtn.className = 'season-btn';
@@ -2241,18 +2395,14 @@
                 if (index === 0) seasonBtn.classList.add('active');
                 
                 seasonBtn.addEventListener('click', () => {
-                    // Remover active de todos os botões
                     document.querySelectorAll('.season-btn').forEach(btn => btn.classList.remove('active'));
-                    // Adicionar active ao botão clicado
                     seasonBtn.classList.add('active');
-                    // Carregar episódios da temporada
                     loadEpisodes(season);
                 });
                 
                 seasonSelector.appendChild(seasonBtn);
             });
             
-            // Carregar primeira temporada por padrão
             if (series.seasons.length > 0) {
                 loadEpisodes(series.seasons[0]);
             }
@@ -2303,7 +2453,6 @@
 
             playerTitle.textContent = `${currentSeries.title} - ${episode.title}`;
             
-            // Resetar ambos os players
             videoElement.style.display = 'none';
             youtubeElement.style.display = 'none';
             videoElement.pause();
@@ -2311,7 +2460,6 @@
             youtubeElement.src = '';
 
             if (isYouTubeUrl(episode.videoUrl)) {
-                // É um vídeo do YouTube
                 const videoId = extractYouTubeId(episode.videoUrl);
                 if (videoId) {
                     const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
@@ -2321,20 +2469,17 @@
                     playerType.textContent = 'YouTube Player';
                     playerType.style.display = 'block';
                     
-                    // Esconder controles para YouTube
                     document.querySelector('.player-controls').style.display = 'none';
                 } else {
                     alert('URL do YouTube inválida');
                     return;
                 }
             } else {
-                // É um vídeo normal
                 videoElement.style.display = 'block';
                 videoElement.src = episode.videoUrl;
                 playerType.textContent = 'Player de Vídeo';
                 playerType.style.display = 'block';
                 
-                // Mostrar controles para vídeo normal
                 document.querySelector('.player-controls').style.display = 'flex';
                 
                 videoElement.play().catch(e => {
@@ -2413,7 +2558,6 @@
 
             playerTitle.textContent = item.title;
             
-            // Resetar ambos os players
             videoElement.style.display = 'none';
             youtubeElement.style.display = 'none';
             videoElement.pause();
@@ -2421,7 +2565,6 @@
             youtubeElement.src = '';
 
             if (isYouTubeUrl(item.videoUrl)) {
-                // É um vídeo do YouTube
                 const videoId = extractYouTubeId(item.videoUrl);
                 if (videoId) {
                     const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
@@ -2431,20 +2574,17 @@
                     playerType.textContent = 'YouTube Player';
                     playerType.style.display = 'block';
                     
-                    // Esconder controles para YouTube
                     document.querySelector('.player-controls').style.display = 'none';
                 } else {
                     alert('URL do YouTube inválida');
                     return;
                 }
             } else {
-                // É um vídeo normal
                 videoElement.style.display = 'block';
                 videoElement.src = item.videoUrl;
                 playerType.textContent = 'Player de Vídeo';
                 playerType.style.display = 'block';
                 
-                // Mostrar controles para vídeo normal
                 document.querySelector('.player-controls').style.display = 'flex';
                 
                 videoElement.play().catch(e => {
@@ -2456,7 +2596,6 @@
             videoPlayer.style.display = 'flex';
         }
 
-        // 🔧 **CORREÇÃO: FUNÇÃO CLOSEVIDEOPLAYER MELHORADA**
         function closeVideoPlayer() {
             const videoPlayer = document.getElementById('video-player');
             const videoElement = document.getElementById('video-element');
@@ -2470,15 +2609,13 @@
             youtubeElement.src = '';
             playerType.style.display = 'none';
             
-            // Restaurar controles
             document.querySelector('.player-controls').style.display = 'flex';
         }
 
         function requireSubscription() {
-            // Verificar se usuário tem acesso válido
             if (!currentUser) return false;
             
-            const user = users[currentUser];
+            const user = usersLocalData[currentUser];
             if (!user || new Date(user.endDate) <= new Date() || user.status !== 'active') {
                 showSubscriptionModal();
                 return false;
@@ -2537,11 +2674,18 @@
 
         // 📱 **INICIALIZAÇÃO**
         document.addEventListener('DOMContentLoaded', function() {
-            // Event listeners de login
             document.getElementById('login-btn').addEventListener('click', loginUser);
+            document.getElementById('register-btn').addEventListener('click', registerUser);
             document.getElementById('admin-login-btn').addEventListener('click', loginAdmin);
 
-            // Mostrar login inicialmente
+            document.getElementById('login-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') loginUser();
+            });
+            
+            document.getElementById('register-confirm-password').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') registerUser();
+            });
+
             showUserLogin();
         });
 
