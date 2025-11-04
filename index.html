@@ -10,7 +10,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        /* SEU CSS EXISTENTE PERMANECE EXATAMENTE O MESMO */
         :root {
             --primary-bg: #121212;
             --secondary-bg: #1e1e1e;
@@ -33,40 +32,1266 @@
             color: var(--text-primary);
         }
 
-        /* TODO O RESTANTE DO SEU CSS PERMANECE EXATAMENTE IGUAL */
-        /* ... */
+        /* Tela de Login */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
 
+        .login-modal {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--accent-red), var(--accent-yellow));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: var(--secondary-bg);
+            border: 1px solid #333;
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .login-input:focus {
+            border-color: var(--accent-red);
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: #f40612;
+        }
+
+        .admin-link {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .admin-link:hover {
+            color: var(--accent-yellow);
+        }
+
+        .register-link {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .register-link:hover {
+            color: var(--accent-yellow);
+        }
+
+        /* Dashboard Admin */
+        .dashboard-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-bg);
+            z-index: 4000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        .dashboard-tab {
+            padding: 0.8rem 1.5rem;
+            background: var(--secondary-bg);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .dashboard-tab.active {
+            background: var(--accent-red);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin: 0.5rem 0;
+        }
+
+        .logout-btn {
+            background: var(--accent-red);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Forms de Gerenciamento */
+        .management-form {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            padding: 0.8rem;
+            background: var(--secondary-bg);
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .form-textarea {
+            padding: 0.8rem;
+            background: var(--secondary-bg);
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-select {
+            padding: 0.8rem;
+            background: var(--secondary-bg);
+            border: 1px solid #333;
+            border-radius: 4px;
+            color: var(--text-primary);
+        }
+
+        .submit-btn {
+            background: var(--accent-yellow);
+            color: black;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        /* Listas */
+        .user-management, .content-management {
+            margin-top: 2rem;
+        }
+
+        .user-list, .content-list {
+            max-height: 400px;
+            overflow-y: auto;
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .user-item, .content-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .user-info, .content-info {
+            flex: 1;
+        }
+
+        .user-actions, .content-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-edit {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-activate {
+            background: #4CAF50;
+            color: white;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--secondary-bg);
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--accent-red), var(--accent-yellow));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .admin-btn {
+            background: var(--accent-yellow);
+            color: black;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .logout-btn-small {
+            background: transparent;
+            border: 1px solid var(--text-secondary);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .search-container {
+            display: flex;
+            align-items: center;
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            width: 70%;
+            border: 1px solid #333;
+            transition: all 0.3s ease;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
+        }
+
+        .search-input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            width: 100%;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .search-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.3rem;
+        }
+
+        .search-btn:hover {
+            color: var(--accent-red);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--secondary-bg);
+            padding: 0.5rem 0;
+            position: sticky;
+            top: 60px;
+            z-index: 99;
+        }
+
+        .nav-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .nav-tab:hover {
+            background-color: rgba(229, 9, 20, 0.1);
+        }
+
+        .nav-tab.active {
+            color: var(--accent-red);
+            background-color: rgba(229, 9, 20, 0.1);
+            transform: scale(1.05);
+        }
+
+        .nav-tab i {
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 1rem;
+            min-height: calc(100vh - 140px);
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title span {
+            color: var(--accent-yellow);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .section-title span:hover {
+            background-color: rgba(245, 197, 24, 0.1);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .content-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .content-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .content-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 0.8rem;
+        }
+
+        .card-title {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .card-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Modal de Séries */
+        .series-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1500;
+        }
+
+        .series-modal-content {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .season-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .season-btn {
+            padding: 0.5rem 1rem;
+            background: var(--secondary-bg);
+            border: none;
+            border-radius: 4px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .season-btn.active {
+            background: var(--accent-red);
+        }
+
+        .episodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .episode-card {
+            background: var(--secondary-bg);
+            padding: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .episode-card:hover {
+            background: var(--accent-red);
+            transform: translateY(-2px);
+        }
+
+        /* Video Player */
+        #video-player {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1001;
+        }
+
+        .close-player {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            z-index: 1002;
+        }
+
+        .close-player:hover {
+            color: var(--accent-red);
+        }
+
+        .video-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: 100%;
+            height: calc(100% - 120px);
+        }
+
+        #video-element {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            background: black;
+        }
+
+        .youtube-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: black;
+        }
+
+        .player-controls {
+            padding: 1rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            z-index: 1001;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .control-btn:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Modal de Assinatura */
+        .subscription-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .subscription-modal {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .plan-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .plan-card {
+            background: var(--secondary-bg);
+            padding: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .plan-card:hover {
+            border-color: var(--accent-red);
+        }
+
+        .plan-card.selected {
+            border-color: var(--accent-yellow);
+            background: rgba(245, 197, 24, 0.1);
+        }
+
+        .plan-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-yellow);
+            margin: 0.5rem 0;
+        }
+
+        .payment-methods {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .payment-method {
+            padding: 0.8rem 1.5rem;
+            background: var(--secondary-bg);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-method.active {
+            background: var(--accent-red);
+        }
+
+        .pix-code {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            color: black;
+            text-align: center;
+        }
+
+        /* Utility */
+        .hidden {
+            display: none !important;
+        }
+
+        .active-tab {
+            display: block;
+        }
+
+        .favorites-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .favorites-empty i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--accent-red);
+        }
+
+        .search-results {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .search-count {
+            color: var(--accent-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .youtube-badge {
+            background: #ff0000;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        .player-type-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 1003;
+        }
     </style>
 </head>
 <body>
-    <!-- TODOS OS SEUS ELEMENTOS HTML PERMANECEM EXATAMENTE OS MESMOS -->
     <!-- Tela de Login -->
     <div id="login-overlay" class="login-overlay">
-        <!-- ... -->
+        <div class="login-modal">
+            <div class="logo">CONDESSA IPTV</div>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Faça login para acessar o conteúdo</p>
+            
+            <input type="text" id="login-email" class="login-input" placeholder="E-mail">
+            <input type="password" id="login-password" class="login-input" placeholder="Senha">
+            
+            <button id="login-btn" class="login-btn">Entrar</button>
+            
+            <div class="register-link" onclick="showRegister()">
+                Não tem conta? Cadastre-se
+            </div>
+            
+            <div class="admin-link" onclick="showAdminLogin()">
+                Acesso Administrativo
+            </div>
+        </div>
     </div>
 
     <!-- Tela de Cadastro -->
     <div id="register-overlay" class="login-overlay hidden">
-        <!-- ... -->
+        <div class="login-modal">
+            <div class="logo">CONDESSA IPTV</div>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Crie sua conta</p>
+            
+            <input type="text" id="register-email" class="login-input" placeholder="E-mail">
+            <input type="password" id="register-password" class="login-input" placeholder="Senha (mínimo 6 caracteres)">
+            <input type="password" id="register-confirm-password" class="login-input" placeholder="Confirmar Senha">
+            
+            <button id="register-btn" class="login-btn">Cadastrar</button>
+            
+            <div class="admin-link" onclick="showUserLogin()">
+                Voltar para Login
+            </div>
+        </div>
     </div>
 
     <!-- Tela de Login Admin -->
     <div id="admin-login-overlay" class="login-overlay hidden">
-        <!-- ... -->
+        <div class="login-modal">
+            <div class="logo">CONDESSA ADMIN</div>
+            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Acesso Restrito</p>
+            
+            <input type="text" id="admin-username" class="login-input" placeholder="Admin Usuário">
+            <input type="password" id="admin-password" class="login-input" placeholder="Admin Senha">
+            
+            <button id="admin-login-btn" class="login-btn">Acessar Dashboard</button>
+            
+            <div class="admin-link" onclick="showUserLogin()">
+                Voltar para Login de Usuário
+            </div>
+        </div>
     </div>
 
     <!-- Dashboard Admin -->
     <div id="dashboard-overlay" class="dashboard-overlay hidden">
-        <!-- ... -->
+        <div class="dashboard-header">
+            <h1>Dashboard Administrativo</h1>
+            <button class="logout-btn" onclick="logoutAdmin()">Sair</button>
+        </div>
+
+        <div class="dashboard-tabs">
+            <button class="dashboard-tab active" onclick="switchAdminTab('overview')">Visão Geral</button>
+            <button class="dashboard-tab" onclick="switchAdminTab('users')">Gerenciar Usuários</button>
+            <button class="dashboard-tab" onclick="switchAdminTab('movies')">Gerenciar Filmes</button>
+            <button class="dashboard-tab" onclick="switchAdminTab('series')">Gerenciar Séries</button>
+            <button class="dashboard-tab" onclick="switchAdminTab('tv')">Gerenciar Canais TV</button>
+        </div>
+
+        <!-- Visão Geral -->
+        <div id="admin-overview" class="admin-tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Usuários Ativos</h3>
+                    <div class="stat-number" id="active-users-count">0</div>
+                    <p>Assinaturas válidas</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Receita Mensal</h3>
+                    <div class="stat-number" id="monthly-revenue">R$ 0</div>
+                    <p>Previsão atual</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total de Usuários</h3>
+                    <div class="stat-number" id="total-users">0</div>
+                    <p>Cadastrados no sistema</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Conteúdo Total</h3>
+                    <div class="stat-number" id="total-content">0</div>
+                    <p>Filmes + Séries + Canais</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gerenciar Usuários -->
+        <div id="admin-users" class="admin-tab-content hidden">
+            <div class="management-form">
+                <h3>Adicionar Novo Usuário</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">E-mail</label>
+                        <input type="text" id="new-username" class="form-input" placeholder="E-mail do usuário">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Senha</label>
+                        <input type="password" id="new-password" class="form-input" placeholder="Senha">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Plano</label>
+                        <select id="new-user-plan" class="form-select">
+                            <option value="7">7 Dias - R$ 10</option>
+                            <option value="30">30 Dias - R$ 30</option>
+                            <option value="90">90 Dias - R$ 75</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="new-user-status" class="form-select">
+                            <option value="active">Ativo</option>
+                            <option value="pending">Pendente</option>
+                            <option value="expired">Expirado</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="addNewUser()">Adicionar Usuário</button>
+            </div>
+
+            <div class="user-management">
+                <h3>Usuários Cadastrados</h3>
+                <div class="user-list" id="user-list">
+                    <!-- Lista de usuários será gerada aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Gerenciar Filmes -->
+        <div id="admin-movies" class="admin-tab-content hidden">
+            <div class="management-form">
+                <h3>Adicionar Novo Filme</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Título</label>
+                        <input type="text" id="movie-title" class="form-input" placeholder="Título do filme">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gênero</label>
+                        <input type="text" id="movie-genre" class="form-input" placeholder="Ação, Drama, etc">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Avaliação</label>
+                        <input type="number" id="movie-rating" class="form-input" placeholder="0.0 a 10.0" step="0.1" min="0" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="text" id="movie-image" class="form-input" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL do Vídeo</label>
+                        <input type="text" id="movie-video" class="form-input" placeholder="https://... (YouTube ou vídeo direto)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea id="movie-description" class="form-textarea" placeholder="Sinopse do filme"></textarea>
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="addNewMovie()">Adicionar Filme</button>
+            </div>
+
+            <div class="content-management">
+                <h3>Filmes Cadastrados</h3>
+                <div class="content-list" id="movies-list">
+                    <!-- Lista de filmes será gerada aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Gerenciar Séries -->
+        <div id="admin-series" class="admin-tab-content hidden">
+            <div class="management-form">
+                <h3>Adicionar Nova Série</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Título da Série</label>
+                        <input type="text" id="series-title" class="form-input" placeholder="Título da série">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Gênero</label>
+                        <input type="text" id="series-genre" class="form-input" placeholder="Drama, Comédia, etc">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Avaliação</label>
+                        <input type="number" id="series-rating" class="form-input" placeholder="0.0 a 10.0" step="0.1" min="0" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Imagem</label>
+                        <input type="text" id="series-image" class="form-input" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea id="series-description" class="form-textarea" placeholder="Sinopse da série"></textarea>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 2rem; margin-bottom: 1rem;">Adicionar Temporadas e Episódios</h4>
+                <div id="seasons-container">
+                    <!-- Temporadas serão adicionadas aqui -->
+                </div>
+                <button type="button" class="submit-btn" onclick="addSeason()" style="background: #2196F3; margin-top: 1rem;">
+                    + Adicionar Temporada
+                </button>
+
+                <button class="submit-btn" onclick="addNewSeries()" style="margin-top: 2rem;">Adicionar Série</button>
+            </div>
+
+            <div class="content-management">
+                <h3>Séries Cadastradas</h3>
+                <div class="content-list" id="series-list">
+                    <!-- Lista de séries será gerada aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Gerenciar Canais TV -->
+        <div id="admin-tv" class="admin-tab-content hidden">
+            <div class="management-form">
+                <h3>Adicionar Novo Canal</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nome do Canal</label>
+                        <input type="text" id="channel-name" class="form-input" placeholder="Nome do canal">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoria</label>
+                        <input type="text" id="channel-category" class="form-input" placeholder="Esportes, Notícias, etc">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Avaliação</label>
+                        <input type="number" id="channel-rating" class="form-input" placeholder="0.0 a 5.0" step="0.1" min="0" max="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL da Logo</label>
+                        <input type="text" id="channel-logo" class="form-input" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">URL do Stream</label>
+                        <input type="text" id="channel-stream" class="form-input" placeholder="https://... (YouTube ou stream direto)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">País</label>
+                        <input type="text" id="channel-country" class="form-input" placeholder="BR, US, etc">
+                    </div>
+                </div>
+                <button class="submit-btn" onclick="addNewChannel()">Adicionar Canal</button>
+            </div>
+
+            <div class="content-management">
+                <h3>Canais Cadastrados</h3>
+                <div class="content-list" id="channels-list">
+                    <!-- Lista de canais será gerada aqui -->
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Aplicação Principal -->
+    <!-- Aplicação Principal (aparece após login) -->
     <div id="main-app" class="hidden">
-        <!-- ... -->
+        <!-- Header -->
+        <header>
+            <div class="header-logo">CONDESSA</div>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Buscar filmes, séries, canais..." id="search-input">
+                <button class="search-btn" id="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="user-menu">
+                <button class="admin-btn" onclick="showAdminLogin()">
+                    <i class="fas fa-cog"></i> Admin
+                </button>
+                <button class="logout-btn-small" onclick="logoutUser()">
+                    <i class="fas fa-sign-out-alt"></i> Sair
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="home">
+                <i class="fas fa-home"></i>
+                <span>Início</span>
+            </div>
+            <div class="nav-tab" data-tab="movies">
+                <i class="fas fa-film"></i>
+                <span>Filmes</span>
+            </div>
+            <div class="nav-tab" data-tab="series">
+                <i class="fas fa-tv"></i>
+                <span>Séries</span>
+            </div>
+            <div class="nav-tab" data-tab="live">
+                <i class="fas fa-broadcast-tower"></i>
+                <span>Ao Vivo</span>
+            </div>
+            <div class="nav-tab" data-tab="favorites">
+                <i class="fas fa-heart"></i>
+                <span>Favoritos</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Home -->
+            <div id="home" class="tab-content active-tab">
+                <div class="section-title">
+                    <h2>Filmes em Destaque</h2>
+                    <span onclick="switchTab('movies')">Ver Todos</span>
+                </div>
+                <div class="content-grid" id="home-movies"></div>
+
+                <div class="section-title">
+                    <h2>Séries em Alta</h2>
+                    <span onclick="switchTab('series')">Ver Todos</span>
+                </div>
+                <div class="content-grid" id="home-series"></div>
+
+                <div class="section-title">
+                    <h2>Canais Populares</h2>
+                    <span onclick="switchTab('live')">Ver Todos</span>
+                </div>
+                <div class="content-grid" id="home-channels"></div>
+            </div>
+
+            <!-- Movies -->
+            <div id="movies" class="tab-content">
+                <div class="section-title">
+                    <h2>Todos os Filmes</h2>
+                </div>
+                <div class="content-grid" id="all-movies"></div>
+            </div>
+
+            <!-- Series -->
+            <div id="series" class="tab-content">
+                <div class="section-title">
+                    <h2>Todas as Séries</h2>
+                </div>
+                <div class="content-grid" id="all-series"></div>
+            </div>
+
+            <!-- Live TV -->
+            <div id="live" class="tab-content">
+                <div class="section-title">
+                    <h2>Canais Ao Vivo</h2>
+                </div>
+                <div class="content-grid" id="all-channels"></div>
+            </div>
+
+            <!-- Favorites -->
+            <div id="favorites" class="tab-content">
+                <div class="section-title">
+                    <h2>Meus Favoritos</h2>
+                </div>
+                <div class="content-grid" id="favorites-content"></div>
+                <div id="empty-favorites" class="favorites-empty">
+                    <i class="fas fa-heart"></i>
+                    <h3>Nenhum favorito</h3>
+                    <p>Adicione conteúdos aos favoritos</p>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div id="search" class="tab-content">
+                <div class="section-title">
+                    <h2>Resultados da Busca</h2>
+                    <span onclick="clearSearch()">Limpar</span>
+                </div>
+                <div class="content-grid" id="search-results"></div>
+                <div id="no-results" class="favorites-empty hidden">
+                    <i class="fas fa-search"></i>
+                    <h3>Nenhum resultado encontrado</h3>
+                    <p>Tente outros termos de busca</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Séries -->
+        <div id="series-modal" class="series-modal hidden">
+            <div class="series-modal-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 id="series-modal-title">Selecionar Episódio</h2>
+                    <button class="close-player" onclick="closeSeriesModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="season-selector" class="season-selector">
+                    <!-- Botões de temporada serão gerados aqui -->
+                </div>
+                
+                <div id="episodes-container" class="episodes-grid">
+                    <!-- Episódios serão gerados aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Assinatura -->
+        <div id="subscription-overlay" class="subscription-overlay hidden">
+            <div class="subscription-modal">
+                <h2>Assine Agora</h2>
+                <p>Escolha seu plano para acessar todo o conteúdo</p>
+                
+                <div class="plan-options">
+                    <div class="plan-card" data-plan="7" data-price="10">
+                        <h3>7 Dias</h3>
+                        <div class="plan-price">R$ 10,00</div>
+                        <small>Teste grátis por 24h</small>
+                    </div>
+                    <div class="plan-card" data-plan="30" data-price="30">
+                        <h3>30 Dias</h3>
+                        <div class="plan-price">R$ 30,00</div>
+                        <small>Melhor custo-benefício</small>
+                    </div>
+                    <div class="plan-card" data-plan="90" data-price="75">
+                        <h3>90 Dias</h3>
+                        <div class="plan-price">R$ 75,00</div>
+                        <small>Economize 17%</small>
+                    </div>
+                </div>
+
+                <div class="payment-methods">
+                    <button class="payment-method active" data-method="pix">PIX</button>
+                    <button class="payment-method" data-method="card">Cartão</button>
+                </div>
+
+                <div id="pix-payment" class="payment-section">
+                    <div class="pix-code">
+                        <p><strong>Chave PIX:</strong></p>
+                        <p id="pix-key">condessa@email.com</p>
+                        <p><small>Envie o comprovante para WhatsApp</small></p>
+                    </div>
+                </div>
+
+                <div id="card-payment" class="payment-section hidden">
+                    <p>Pagamento com cartão em breve</p>
+                </div>
+
+                <button id="confirm-payment" class="control-btn" style="background: var(--accent-yellow); color: black; margin-top: 1rem;">
+                    Confirmar Pagamento
+                </button>
+
+                <button id="close-subscription" class="control-btn" style="margin-top: 0.5rem;">
+                    Fechar
+                </button>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div id="video-player">
+            <div class="player-header">
+                <div id="player-title">Título do Vídeo</div>
+                <button class="close-player" id="close-video-player">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="video-container">
+                <div class="player-type-indicator" id="player-type">Player de Vídeo</div>
+                <video id="video-element" controls></video>
+                <iframe id="youtube-element" class="youtube-container" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                </iframe>
+            </div>
+            <div class="player-controls">
+                <button class="control-btn" id="play-btn">
+                    <i class="fas fa-play"></i>
+                </button>
+                <button class="control-btn" id="pause-btn">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <button class="control-btn" id="fullscreen-btn">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
     <script>
-        // 🔥 CONFIGURAÇÃO DO FIREBASE (ATUALIZADA COM FIRESTORE)
+        // 🔥 CONFIGURAÇÃO DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyCWS0jcIeAySuIaDSBqSe5MtQjDzfmfUsY",
             authDomain: "condessa-c150b.firebaseapp.com",
@@ -79,7 +1304,7 @@
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore(); // ← LINHA ADICIONADA
+        const db = firebase.firestore();
 
         // 🔐 **SISTEMA DE AUTENTICAÇÃO ATUALIZADO**
         const ADMIN_CREDENTIALS = { username: '123', password: '123' };
@@ -205,7 +1430,7 @@
                 });
         }
 
-        // 🔧 **FUNÇÕES DO PAINEL ADMIN ATUALIZADAS**
+        // 🔧 **FUNÇÕES DO PAINEL ADMIN**
 
         function switchAdminTab(tabName) {
             document.querySelectorAll('.admin-tab-content').forEach(tab => {
@@ -1096,109 +2321,524 @@
             loadChannelsList();
         }
 
-        // 🎬 **SISTEMA DE NAVEGAÇÃO E CONTEÚDO (PERMANECE O MESMO)**
+        // 🎬 **SISTEMA DE NAVEGAÇÃO E CONTEÚDO**
         let currentTab = 'home';
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         let currentSeries = null;
 
         function initializeNavigation() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+
+            document.getElementById('search-btn').addEventListener('click', performSearch);
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            document.getElementById('close-video-player').addEventListener('click', closeVideoPlayer);
+            
+            const videoElement = document.getElementById('video-element');
+            const playBtn = document.getElementById('play-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+            videoElement.addEventListener('play', function() {
+                playBtn.style.display = 'none';
+                pauseBtn.style.display = 'block';
+            });
+
+            videoElement.addEventListener('pause', function() {
+                playBtn.style.display = 'block';
+                pauseBtn.style.display = 'none';
+            });
+
+            playBtn.addEventListener('click', function() {
+                if (videoElement.paused) {
+                    videoElement.play().catch(e => {
+                        console.log('Erro ao reproduzir vídeo:', e);
+                    });
+                }
+            });
+
+            pauseBtn.addEventListener('click', function() {
+                if (!videoElement.paused) {
+                    videoElement.pause();
+                }
+            });
+
+            fullscreenBtn.addEventListener('click', function() {
+                const videoPlayer = document.getElementById('video-player');
+                if (!document.fullscreenElement) {
+                    if (videoPlayer.requestFullscreen) {
+                        videoPlayer.requestFullscreen();
+                    } else if (videoPlayer.webkitRequestFullscreen) {
+                        videoPlayer.webkitRequestFullscreen();
+                    } else if (videoPlayer.msRequestFullscreen) {
+                        videoPlayer.msRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                }
+            });
+
+            switchTab('home');
         }
 
         function switchTab(tabId) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
+            if (activeTab) {
+                activeTab.classList.add('active');
+            }
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active-tab');
+                content.style.display = 'none';
+            });
+            
+            const targetTab = document.getElementById(tabId);
+            if (targetTab) {
+                targetTab.classList.add('active-tab');
+                targetTab.style.display = 'block';
+            }
+
+            currentTab = tabId;
+            
+            loadTabContent(tabId);
         }
 
         function loadTabContent(tabId) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            switch(tabId) {
+                case 'home':
+                    loadHomeContent();
+                    break;
+                case 'movies':
+                    loadAllMovies();
+                    break;
+                case 'series':
+                    loadAllSeries();
+                    break;
+                case 'live':
+                    loadAllChannels();
+                    break;
+                case 'favorites':
+                    loadFavorites();
+                    break;
+            }
         }
 
         function loadHomeContent() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            loadContentToGrid('movies', 'home-movies', 4);
+            loadContentToGrid('series', 'home-series', 4);
+            loadContentToGrid('channels', 'home-channels', 4);
         }
 
         function loadAllMovies() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            loadContentToGrid('movies', 'all-movies');
         }
 
         function loadAllSeries() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            loadContentToGrid('series', 'all-series');
         }
 
         function loadAllChannels() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            loadContentToGrid('channels', 'all-channels');
         }
 
         function loadContentToGrid(contentType, containerId, limit = null) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error('Container não encontrado:', containerId);
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            const items = contentData[contentType];
+            const itemsToShow = limit ? items.slice(0, limit) : items;
+            
+            if (itemsToShow.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Nenhum conteúdo disponível</p>';
+                return;
+            }
+            
+            itemsToShow.forEach(item => {
+                const card = createContentCard(item);
+                container.appendChild(card);
+            });
         }
 
         function createContentCard(item) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const card = document.createElement('div');
+            card.className = 'content-card';
+            
+            const isFavorite = favorites.includes(item.id);
+            const isYouTube = isYouTubeUrl(item.videoUrl);
+            const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
+            
+            let extraInfo = '';
+            if (item.type === 'series') {
+                const totalSeasons = item.seasons ? item.seasons.length : 0;
+                const totalEpisodes = item.seasons ? item.seasons.reduce((total, season) => total + season.episodes.length, 0) : 0;
+                extraInfo = `${totalSeasons} temp • ${totalEpisodes} eps`;
+            }
+            
+            card.innerHTML = `
+                <img src="${item.image}" alt="${item.title}" class="card-image">
+                <div class="card-content">
+                    <div class="card-title">${item.title} ${youtubeBadge}</div>
+                    <div class="card-info">
+                        <span>${item.genre}</span>
+                        <span>⭐ ${item.rating}</span>
+                    </div>
+                    ${extraInfo ? `<div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem;">${extraInfo}</div>` : ''}
+                    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+                        <button class="play-btn" style="background: ${isYouTube ? '#ff0000' : '#e50914'}; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
+                            ${item.type === 'series' ? 'Escolher Episódio' : (isYouTube ? 'Assistir YouTube' : 'Assistir')}
+                        </button>
+                        <button class="fav-btn" style="background: none; border: none; color: ${isFavorite ? '#e50914' : '#b3b3b3'}; cursor: pointer; font-size: 1.2rem;">
+                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            card.querySelector('.play-btn').addEventListener('click', () => {
+                if (item.type === 'series') {
+                    openSeriesModal(item);
+                } else {
+                    playContent(item);
+                }
+            });
+
+            card.querySelector('.fav-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleFavorite(item.id, card.querySelector('.fav-btn'));
+            });
+
+            return card;
         }
 
         function isYouTubeUrl(url) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            if (!url) return false;
+            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            return youtubeRegex.test(url);
         }
 
         function extractYouTubeId(url) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
         }
 
         function openSeriesModal(series) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            currentSeries = series;
+            const modal = document.getElementById('series-modal');
+            const title = document.getElementById('series-modal-title');
+            const seasonSelector = document.getElementById('season-selector');
+            const episodesContainer = document.getElementById('episodes-container');
+            
+            title.textContent = series.title;
+            seasonSelector.innerHTML = '';
+            episodesContainer.innerHTML = '';
+            
+            series.seasons.forEach((season, index) => {
+                const seasonBtn = document.createElement('button');
+                seasonBtn.className = 'season-btn';
+                seasonBtn.textContent = `Temp ${season.number}`;
+                if (index === 0) seasonBtn.classList.add('active');
+                
+                seasonBtn.addEventListener('click', () => {
+                    document.querySelectorAll('.season-btn').forEach(btn => btn.classList.remove('active'));
+                    seasonBtn.classList.add('active');
+                    loadEpisodes(season);
+                });
+                
+                seasonSelector.appendChild(seasonBtn);
+            });
+            
+            if (series.seasons.length > 0) {
+                loadEpisodes(series.seasons[0]);
+            }
+            
+            modal.classList.remove('hidden');
         }
 
         function closeSeriesModal() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const modal = document.getElementById('series-modal');
+            modal.classList.add('hidden');
+            currentSeries = null;
         }
 
         function loadEpisodes(season) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const episodesContainer = document.getElementById('episodes-container');
+            episodesContainer.innerHTML = '';
+            
+            season.episodes.forEach(episode => {
+                const isYouTube = isYouTubeUrl(episode.videoUrl);
+                const youtubeBadge = isYouTube ? '<span class="youtube-badge">YouTube</span>' : '';
+                
+                const episodeCard = document.createElement('div');
+                episodeCard.className = 'episode-card';
+                episodeCard.innerHTML = `
+                    <div style="font-weight: bold;">Ep ${episode.number} ${youtubeBadge}</div>
+                    <div style="font-size: 0.8rem; margin-top: 0.3rem;">${episode.title}</div>
+                    ${episode.duration ? `<div style="font-size: 0.7rem; color: var(--text-secondary);">${episode.duration} min</div>` : ''}
+                `;
+                
+                episodeCard.addEventListener('click', () => {
+                    playEpisode(episode);
+                });
+                
+                episodesContainer.appendChild(episodeCard);
+            });
         }
 
         function playEpisode(episode) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            if (!requireSubscription()) {
+                return;
+            }
+
+            const playerTitle = document.getElementById('player-title');
+            const videoElement = document.getElementById('video-element');
+            const youtubeElement = document.getElementById('youtube-element');
+            const playerType = document.getElementById('player-type');
+            const videoPlayer = document.getElementById('video-player');
+
+            playerTitle.textContent = `${currentSeries.title} - ${episode.title}`;
+            
+            videoElement.style.display = 'none';
+            youtubeElement.style.display = 'none';
+            videoElement.pause();
+            videoElement.src = '';
+            youtubeElement.src = '';
+
+            if (isYouTubeUrl(episode.videoUrl)) {
+                const videoId = extractYouTubeId(episode.videoUrl);
+                if (videoId) {
+                    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
+                    
+                    youtubeElement.style.display = 'block';
+                    youtubeElement.src = embedUrl;
+                    playerType.textContent = 'YouTube Player';
+                    playerType.style.display = 'block';
+                    
+                    document.querySelector('.player-controls').style.display = 'none';
+                } else {
+                    alert('URL do YouTube inválida');
+                    return;
+                }
+            } else {
+                videoElement.style.display = 'block';
+                videoElement.src = episode.videoUrl;
+                playerType.textContent = 'Player de Vídeo';
+                playerType.style.display = 'block';
+                
+                document.querySelector('.player-controls').style.display = 'flex';
+                
+                videoElement.play().catch(e => {
+                    console.log('Erro ao reproduzir vídeo:', e);
+                    alert('Erro ao carregar o vídeo. Verifique a URL.');
+                });
+            }
+            
+            videoPlayer.style.display = 'flex';
+            closeSeriesModal();
         }
 
         function toggleFavorite(contentId, button) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const index = favorites.indexOf(contentId);
+            const heartIcon = button.querySelector('i');
+            
+            if (index === -1) {
+                favorites.push(contentId);
+                heartIcon.className = 'fas fa-heart';
+                button.style.color = '#e50914';
+            } else {
+                favorites.splice(index, 1);
+                heartIcon.className = 'far fa-heart';
+                button.style.color = '#b3b3b3';
+            }
+            
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            if (currentTab === 'favorites') {
+                loadFavorites();
+            }
         }
 
         function loadFavorites() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const container = document.getElementById('favorites-content');
+            const emptyMsg = document.getElementById('empty-favorites');
+            
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (favorites.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+            
+            emptyMsg.classList.add('hidden');
+            
+            const allItems = getAllContent();
+            const favoriteItems = allItems.filter(item => favorites.includes(item.id));
+            
+            favoriteItems.forEach(item => {
+                const card = createContentCard(item);
+                container.appendChild(card);
+            });
         }
 
         function getAllContent() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            return [
+                ...contentData.movies,
+                ...contentData.series,
+                ...contentData.channels
+            ];
         }
 
         function playContent(item) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            if (!requireSubscription()) {
+                return;
+            }
+
+            const playerTitle = document.getElementById('player-title');
+            const videoElement = document.getElementById('video-element');
+            const youtubeElement = document.getElementById('youtube-element');
+            const playerType = document.getElementById('player-type');
+            const videoPlayer = document.getElementById('video-player');
+
+            playerTitle.textContent = item.title;
+            
+            videoElement.style.display = 'none';
+            youtubeElement.style.display = 'none';
+            videoElement.pause();
+            videoElement.src = '';
+            youtubeElement.src = '';
+
+            if (isYouTubeUrl(item.videoUrl)) {
+                const videoId = extractYouTubeId(item.videoUrl);
+                if (videoId) {
+                    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
+                    
+                    youtubeElement.style.display = 'block';
+                    youtubeElement.src = embedUrl;
+                    playerType.textContent = 'YouTube Player';
+                    playerType.style.display = 'block';
+                    
+                    document.querySelector('.player-controls').style.display = 'none';
+                } else {
+                    alert('URL do YouTube inválida');
+                    return;
+                }
+            } else {
+                videoElement.style.display = 'block';
+                videoElement.src = item.videoUrl;
+                playerType.textContent = 'Player de Vídeo';
+                playerType.style.display = 'block';
+                
+                document.querySelector('.player-controls').style.display = 'flex';
+                
+                videoElement.play().catch(e => {
+                    console.log('Erro ao reproduzir vídeo:', e);
+                    alert('Erro ao carregar o vídeo. Verifique a URL.');
+                });
+            }
+            
+            videoPlayer.style.display = 'flex';
         }
 
         function closeVideoPlayer() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const videoPlayer = document.getElementById('video-player');
+            const videoElement = document.getElementById('video-element');
+            const youtubeElement = document.getElementById('youtube-element');
+            const playerType = document.getElementById('player-type');
+            
+            videoPlayer.style.display = 'none';
+            videoElement.pause();
+            videoElement.currentTime = 0;
+            videoElement.src = '';
+            youtubeElement.src = '';
+            playerType.style.display = 'none';
+            
+            document.querySelector('.player-controls').style.display = 'flex';
         }
 
         function requireSubscription() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            if (!currentUser) return false;
+            
+            const user = usersLocalData[currentUser];
+            if (!user || new Date(user.endDate) <= new Date() || user.status !== 'active') {
+                showSubscriptionModal();
+                return false;
+            }
+            return true;
         }
 
         function showSubscriptionModal() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const subscriptionOverlay = document.getElementById('subscription-overlay');
+            subscriptionOverlay.classList.remove('hidden');
         }
 
         function performSearch() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const searchTerm = document.getElementById('search-input').value.trim();
+            
+            if (!searchTerm) {
+                alert('Digite algo para buscar');
+                return;
+            }
+
+            switchTab('search');
+            showSearchResults(searchTerm);
         }
 
         function showSearchResults(searchTerm) {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            const resultsContainer = document.getElementById('search-results');
+            const noResults = document.getElementById('no-results');
+            
+            if (!resultsContainer) return;
+            
+            resultsContainer.innerHTML = '';
+            
+            const allContent = getAllContent();
+            const searchResults = allContent.filter(item => 
+                item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.genre.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            if (searchResults.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            
+            searchResults.forEach(item => {
+                const card = createContentCard(item);
+                resultsContainer.appendChild(card);
+            });
         }
 
         function clearSearch() {
-            // ... TODO O CÓDIGO EXISTENTE PERMANECE EXATAMENTE O MESMO ...
+            switchTab('home');
+            document.getElementById('search-input').value = '';
         }
 
         // 📱 **INICIALIZAÇÃO**
