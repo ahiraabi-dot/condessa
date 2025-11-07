@@ -637,6 +637,13 @@
             background: black;
         }
 
+        .iframe-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: black;
+        }
+
         .player-controls {
             padding: 1rem;
             background-color: rgba(0, 0, 0, 0.8);
@@ -790,6 +797,15 @@
 
         .streamtape-badge {
             background: #ff6b00;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 5px;
+        }
+
+        .iframe-badge {
+            background: #2196F3;
             color: white;
             padding: 2px 6px;
             border-radius: 4px;
@@ -971,7 +987,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL do Vídeo</label>
-                        <input type="text" id="movie-video" class="form-input" placeholder="https://... (YouTube ou vídeo direto)">
+                        <input type="text" id="movie-video" class="form-input" placeholder="https://... (YouTube, Streamtape, Iframe ou vídeo direto)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descrição</label>
@@ -1058,7 +1074,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL do Stream</label>
-                        <input type="text" id="channel-stream" class="form-input" placeholder="https://... (YouTube ou stream direto)">
+                        <input type="text" id="channel-stream" class="form-input" placeholder="https://... (YouTube, Streamtape, Iframe ou stream direto)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">País</label>
@@ -1284,6 +1300,11 @@
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowfullscreen>
                 </iframe>
+                <iframe id="iframe-element" class="iframe-container" 
+                        frameborder="0" 
+                        allow="encrypted-media" 
+                        allowfullscreen>
+                </iframe>
             </div>
             <div class="player-controls">
                 <button class="control-btn" id="play-btn">
@@ -1330,7 +1351,7 @@
         // 👥 **SISTEMA DE USUÁRIOS ATUALIZADO**
         let usersLocalData = JSON.parse(localStorage.getItem('condessa_users_local')) || {};
 
-        // 🆕 **FUNÇÕES PARA STREAMTAPE**
+        // 🆕 **FUNÇÕES PARA STREAMTAPE E IFRAME**
         function isStreamtapeUrl(url) {
             if (!url) return false;
             const streamtapeRegex = /^(https?:\/\/)?(www\.)?streamtape\.com\/(v|e)\/[a-zA-Z0-9]+/;
@@ -1351,11 +1372,31 @@
             return null;
         }
 
+        function isIframeUrl(url) {
+            if (!url) return false;
+            // Verifica se é uma URL codificada ou contém padrões de iframe
+            return url.includes('%') || url.includes('player3/ch.php') || url.includes('iframe');
+        }
+
+        function decodeIframeUrl(url) {
+            if (url.includes('%')) {
+                try {
+                    return decodeURIComponent(url);
+                } catch (e) {
+                    console.error('Erro ao decodificar URL:', e);
+                    return url;
+                }
+            }
+            return url;
+        }
+
         function checkVideoUrlType(url) {
             if (isYouTubeUrl(url)) {
                 return 'youtube';
             } else if (isStreamtapeUrl(url)) {
                 return 'streamtape';
+            } else if (isIframeUrl(url)) {
+                return 'iframe';
             } else if (url.includes('.m3u8') || url.includes('.mp4') || url.includes('.webm')) {
                 return 'direct';
             } else {
@@ -1670,11 +1711,11 @@
             moviesList.innerHTML = '';
 
             contentData.movies.forEach(movie => {
-                const isYouTube = isYouTubeUrl(movie.videoUrl);
-                const isStreamtape = isStreamtapeUrl(movie.videoUrl);
+                const urlType = checkVideoUrlType(movie.videoUrl);
                 let badge = '';
-                if (isYouTube) badge = '<span class="youtube-badge">YouTube</span>';
-                else if (isStreamtape) badge = '<span class="streamtape-badge">Streamtape</span>';
+                if (urlType === 'youtube') badge = '<span class="youtube-badge">YouTube</span>';
+                else if (urlType === 'streamtape') badge = '<span class="streamtape-badge">Streamtape</span>';
+                else if (urlType === 'iframe') badge = '<span class="iframe-badge">IFRAME</span>';
                 
                 const movieItem = document.createElement('div');
                 movieItem.className = 'content-item';
@@ -1847,7 +1888,7 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">URL do Vídeo</label>
-                        <input type="text" class="form-input episode-video" placeholder="https://... (YouTube ou vídeo direto)">
+                        <input type="text" class="form-input episode-video" placeholder="https://... (YouTube, Streamtape, Iframe ou vídeo direto)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Descrição</label>
@@ -2058,11 +2099,11 @@
             channelsList.innerHTML = '';
 
             contentData.channels.forEach(channel => {
-                const isYouTube = isYouTubeUrl(channel.videoUrl);
-                const isStreamtape = isStreamtapeUrl(channel.videoUrl);
+                const urlType = checkVideoUrlType(channel.videoUrl);
                 let badge = '';
-                if (isYouTube) badge = '<span class="youtube-badge">YouTube</span>';
-                else if (isStreamtape) badge = '<span class="streamtape-badge">Streamtape</span>';
+                if (urlType === 'youtube') badge = '<span class="youtube-badge">YouTube</span>';
+                else if (urlType === 'streamtape') badge = '<span class="streamtape-badge">Streamtape</span>';
+                else if (urlType === 'iframe') badge = '<span class="iframe-badge">IFRAME</span>';
                 
                 const channelItem = document.createElement('div');
                 channelItem.className = 'content-item';
@@ -2543,6 +2584,8 @@
                 badge = '<span class="youtube-badge">YouTube</span>';
             } else if (urlType === 'streamtape') {
                 badge = '<span class="streamtape-badge">Streamtape</span>';
+            } else if (urlType === 'iframe') {
+                badge = '<span class="iframe-badge">IFRAME</span>';
             }
             
             let extraInfo = '';
@@ -2561,6 +2604,9 @@
             } else if (urlType === 'streamtape') {
                 buttonColor = '#ff6b00';
                 buttonText = 'Assistir Streamtape';
+            } else if (urlType === 'iframe') {
+                buttonColor = '#2196F3';
+                buttonText = 'Assistir IFRAME';
             }
             
             card.innerHTML = `
@@ -2661,6 +2707,8 @@
                     badge = '<span class="youtube-badge">YouTube</span>';
                 } else if (urlType === 'streamtape') {
                     badge = '<span class="streamtape-badge">Streamtape</span>';
+                } else if (urlType === 'iframe') {
+                    badge = '<span class="iframe-badge">IFRAME</span>';
                 }
                 
                 const episodeCard = document.createElement('div');
@@ -2687,6 +2735,7 @@
             const playerTitle = document.getElementById('player-title');
             const videoElement = document.getElementById('video-element');
             const youtubeElement = document.getElementById('youtube-element');
+            const iframeElement = document.getElementById('iframe-element');
             const playerType = document.getElementById('player-type');
             const videoPlayer = document.getElementById('video-player');
 
@@ -2694,9 +2743,11 @@
             
             videoElement.style.display = 'none';
             youtubeElement.style.display = 'none';
+            iframeElement.style.display = 'none';
             videoElement.pause();
             videoElement.src = '';
             youtubeElement.src = '';
+            iframeElement.src = '';
 
             const urlType = checkVideoUrlType(episode.videoUrl);
             
@@ -2718,8 +2769,8 @@
             } else if (urlType === 'streamtape') {
                 const embedUrl = getStreamtapeEmbedUrl(episode.videoUrl);
                 if (embedUrl) {
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
+                    iframeElement.style.display = 'block';
+                    iframeElement.src = embedUrl;
                     playerType.textContent = 'Streamtape Player';
                     playerType.style.display = 'block';
                     
@@ -2728,6 +2779,23 @@
                     alert('URL do Streamtape inválida');
                     return;
                 }
+            } else if (urlType === 'iframe') {
+                const decodedUrl = decodeIframeUrl(episode.videoUrl);
+                let finalUrl = decodedUrl;
+                
+                // Garantir que a URL tenha o protocolo
+                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('//')) {
+                    finalUrl = 'https:' + finalUrl;
+                } else if (finalUrl.startsWith('//')) {
+                    finalUrl = 'https:' + finalUrl;
+                }
+                
+                iframeElement.style.display = 'block';
+                iframeElement.src = finalUrl;
+                playerType.textContent = 'IFRAME Player';
+                playerType.style.display = 'block';
+                
+                document.querySelector('.player-controls').style.display = 'none';
             } else if (urlType === 'direct') {
                 videoElement.style.display = 'block';
                 videoElement.src = episode.videoUrl;
@@ -2810,6 +2878,7 @@
             const playerTitle = document.getElementById('player-title');
             const videoElement = document.getElementById('video-element');
             const youtubeElement = document.getElementById('youtube-element');
+            const iframeElement = document.getElementById('iframe-element');
             const playerType = document.getElementById('player-type');
             const videoPlayer = document.getElementById('video-player');
 
@@ -2817,9 +2886,11 @@
             
             videoElement.style.display = 'none';
             youtubeElement.style.display = 'none';
+            iframeElement.style.display = 'none';
             videoElement.pause();
             videoElement.src = '';
             youtubeElement.src = '';
+            iframeElement.src = '';
 
             const urlType = checkVideoUrlType(item.videoUrl);
             
@@ -2841,8 +2912,8 @@
             } else if (urlType === 'streamtape') {
                 const embedUrl = getStreamtapeEmbedUrl(item.videoUrl);
                 if (embedUrl) {
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
+                    iframeElement.style.display = 'block';
+                    iframeElement.src = embedUrl;
                     playerType.textContent = 'Streamtape Player';
                     playerType.style.display = 'block';
                     
@@ -2851,6 +2922,23 @@
                     alert('URL do Streamtape inválida');
                     return;
                 }
+            } else if (urlType === 'iframe') {
+                const decodedUrl = decodeIframeUrl(item.videoUrl);
+                let finalUrl = decodedUrl;
+                
+                // Garantir que a URL tenha o protocolo
+                if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://') && !finalUrl.startsWith('//')) {
+                    finalUrl = 'https:' + finalUrl;
+                } else if (finalUrl.startsWith('//')) {
+                    finalUrl = 'https:' + finalUrl;
+                }
+                
+                iframeElement.style.display = 'block';
+                iframeElement.src = finalUrl;
+                playerType.textContent = 'IFRAME Player';
+                playerType.style.display = 'block';
+                
+                document.querySelector('.player-controls').style.display = 'none';
             } else if (urlType === 'direct') {
                 videoElement.style.display = 'block';
                 videoElement.src = item.videoUrl;
@@ -2875,6 +2963,7 @@
             const videoPlayer = document.getElementById('video-player');
             const videoElement = document.getElementById('video-element');
             const youtubeElement = document.getElementById('youtube-element');
+            const iframeElement = document.getElementById('iframe-element');
             const playerType = document.getElementById('player-type');
             
             videoPlayer.style.display = 'none';
@@ -2882,6 +2971,7 @@
             videoElement.currentTime = 0;
             videoElement.src = '';
             youtubeElement.src = '';
+            iframeElement.src = '';
             playerType.style.display = 'none';
             
             document.querySelector('.player-controls').style.display = 'flex';
