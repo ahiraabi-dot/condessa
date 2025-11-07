@@ -1336,7 +1336,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // 🔐 **SISTEMA DE AUTENTICAÇÃO**
+        // 🔐 **SISTEMA DE AUTENTICAÇÃO ATUALIZADO**
         const ADMIN_CREDENTIALS = { username: '123', password: '123' };
         let currentUser = null;
         let isAdmin = false;
@@ -1348,10 +1348,10 @@
             channels: []
         };
 
-        // 👥 **SISTEMA DE USUÁRIOS**
+        // 👥 **SISTEMA DE USUÁRIOS ATUALIZADO**
         let usersLocalData = JSON.parse(localStorage.getItem('condessa_users_local')) || {};
 
-        // 🆕 **FUNÇÕES PARA STREAMTAPE E IFRAME CORRIGIDAS**
+        // 🆕 **FUNÇÕES PARA STREAMTAPE E IFRAME**
         function isStreamtapeUrl(url) {
             if (!url) return false;
             const streamtapeRegex = /^(https?:\/\/)?(www\.)?streamtape\.com\/(v|e)\/[a-zA-Z0-9]+/;
@@ -1375,36 +1375,19 @@
         function isIframeUrl(url) {
             if (!url) return false;
             // Verifica se é uma URL codificada ou contém padrões de iframe
-            return url.includes('%') || url.includes('player3/ch.php') || url.includes('<iframe');
-        }
-
-        function extractIframeSrc(iframeHtml) {
-            // Extrai o src do iframe HTML completo
-            const srcMatch = iframeHtml.match(/src="([^"]*)"/);
-            if (srcMatch && srcMatch[1]) {
-                return srcMatch[1];
-            }
-            return iframeHtml; // Se não encontrar, retorna o original
+            return url.includes('%') || url.includes('player3/ch.php') || url.includes('iframe');
         }
 
         function decodeIframeUrl(url) {
-            let decodedUrl = url;
-            
-            // Se for um iframe HTML completo, extrai o src primeiro
-            if (url.includes('<iframe')) {
-                decodedUrl = extractIframeSrc(url);
-            }
-            
-            // Decodifica URLs codificadas
-            if (decodedUrl.includes('%')) {
+            if (url.includes('%')) {
                 try {
-                    decodedUrl = decodeURIComponent(decodedUrl);
+                    return decodeURIComponent(url);
                 } catch (e) {
                     console.error('Erro ao decodificar URL:', e);
+                    return url;
                 }
             }
-            
-            return decodedUrl;
+            return url;
         }
 
         function checkVideoUrlType(url) {
@@ -1554,7 +1537,7 @@
             if (tabName === 'tv') loadChannelsList();
         }
 
-        // 👥 **GERENCIAMENTO DE USUÁRIOS**
+        // 👥 **GERENCIAMENTO DE USUÁRIOS ATUALIZADO**
 
         async function addNewUser() {
             const email = document.getElementById('new-username').value;
@@ -1685,7 +1668,7 @@
             }
         }
 
-        // 🎬 **GERENCIAMENTO DE FILMES**
+        // 🎬 **GERENCIAMENTO DE FILMES ATUALIZADO**
 
         async function addNewMovie() {
             const movie = {
@@ -1810,7 +1793,7 @@
             }
         }
 
-        // 📺 **GERENCIAMENTO DE SÉRIES COM TEMPORADAS E EPISÓDIOS**
+        // 📺 **GERENCIAMENTO DE SÉRIES COM TEMPORADAS E EPISÓDIOS ATUALIZADO**
 
         let seasonCounter = 1;
         let episodeCounters = {};
@@ -2073,7 +2056,7 @@
             }
         }
 
-        // 📡 **GERENCIAMENTO DE CANAIS TV**
+        // 📡 **GERENCIAMENTO DE CANAIS TV ATUALIZADO**
 
         async function addNewChannel() {
             const channel = {
@@ -2195,7 +2178,7 @@
             }
         }
 
-        // 📊 **ATUALIZAÇÃO DO DASHBOARD**
+        // 📊 **ATUALIZAÇÃO DO DASHBOARD ATUALIZADA**
 
         function updateDashboard() {
             const activeUsers = Object.values(usersLocalData).filter(user => 
@@ -2212,7 +2195,7 @@
             document.getElementById('total-content').textContent = totalContent;
         }
 
-        // 🔐 **FUNÇÕES DE AUTENTICAÇÃO**
+        // 🔐 **FUNÇÕES DE AUTENTICAÇÃO ATUALIZADAS**
 
         function showUserLogin() {
             document.getElementById('register-overlay').classList.add('hidden');
@@ -2264,7 +2247,7 @@
                         email: email,
                         plan: '7',
                         startDate: new Date().toISOString(),
-                        endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
                         status: 'active',
                         paymentMethod: 'none',
                         createdDate: new Date().toISOString()
@@ -2400,7 +2383,7 @@
             }
         });
 
-        // 🚀 **FUNÇÃO STARTAPPLICATION**
+        // 🚀 **FUNÇÃO STARTAPPLICATION ATUALIZADA**
         async function startApplication() {
             document.getElementById('login-overlay').classList.add('hidden');
             document.getElementById('register-overlay').classList.add('hidden');
