@@ -3,2967 +3,776 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Condessa IPTV - Assinatura</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <title>Consulta Completa ao Regulamento - Premiere Morumbi</title>
     <style>
         :root {
-            --primary-bg: #121212;
-            --secondary-bg: #1e1e1e;
-            --card-bg: #252525;
-            --accent-red: #e50914;
-            --accent-yellow: #f5c518;
-            --text-primary: #ffffff;
-            --text-secondary: #b3b3b3;
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
         }
-
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
-            background-color: var(--primary-bg);
-            color: var(--text-primary);
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
         }
-
-        /* Tela de Login */
-        .login-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--primary-bg);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-
-        .login-modal {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .logo {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--accent-red), var(--accent-yellow));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            margin-bottom: 1rem;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 1rem;
-            margin: 0.5rem 0;
-            background: var(--secondary-bg);
-            border: 1px solid #333;
-            border-radius: 6px;
-            color: var(--text-primary);
-            font-size: 1rem;
-        }
-
-        .login-input:focus {
-            border-color: var(--accent-red);
-            outline: none;
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--accent-red);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 1rem;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: background 0.3s;
-        }
-
-        .login-btn:hover {
-            background: #f40612;
-        }
-
-        .admin-link {
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .admin-link:hover {
-            color: var(--accent-yellow);
-        }
-
-        .register-link {
-            margin-top: 1rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
-
-        .register-link:hover {
-            color: var(--accent-yellow);
-        }
-
-        /* Dashboard Admin */
-        .dashboard-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--primary-bg);
-            z-index: 4000;
-            padding: 2rem;
-            overflow-y: auto;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
-
-        .dashboard-tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #333;
-            padding-bottom: 1rem;
-        }
-
-        .dashboard-tab {
-            padding: 0.8rem 1.5rem;
-            background: var(--secondary-bg);
-            border: none;
-            border-radius: 6px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .dashboard-tab.active {
-            background: var(--accent-red);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--accent-yellow);
-            margin: 0.5rem 0;
-        }
-
-        .logout-btn {
-            background: var(--accent-red);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* Forms de Gerenciamento */
-        .management-form {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-label {
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .form-input {
-            padding: 0.8rem;
-            background: var(--secondary-bg);
-            border: 1px solid #333;
-            border-radius: 4px;
-            color: var(--text-primary);
-        }
-
-        .form-textarea {
-            padding: 0.8rem;
-            background: var(--secondary-bg);
-            border: 1px solid #333;
-            border-radius: 4px;
-            color: var(--text-primary);
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-select {
-            padding: 0.8rem;
-            background: var(--secondary-bg);
-            border: 1px solid #333;
-            border-radius: 4px;
-            color: var(--text-primary);
-        }
-
-        .submit-btn {
-            background: var(--accent-yellow);
-            color: black;
-            border: none;
-            padding: 1rem 2rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 1rem;
-        }
-
-        /* Listas */
-        .user-management, .content-management {
-            margin-top: 2rem;
-        }
-
-        .user-list, .content-list {
-            max-height: 400px;
-            overflow-y: auto;
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 1rem;
-        }
-
-        .user-item, .content-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            border-bottom: 1px solid #333;
-        }
-
-        .user-info, .content-info {
-            flex: 1;
-        }
-
-        .user-actions, .content-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .action-btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .btn-edit {
-            background: #2196F3;
-            color: white;
-        }
-
-        .btn-delete {
-            background: #f44336;
-            color: white;
-        }
-
-        .btn-activate {
-            background: #4CAF50;
-            color: white;
-        }
-
-        /* Header */
+        
         header {
-            background-color: var(--secondary-bg);
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            background: linear-gradient(45deg, var(--accent-red), var(--accent-yellow));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .admin-btn {
-            background: var(--accent-yellow);
-            color: black;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .logout-btn-small {
-            background: transparent;
-            border: 1px solid var(--text-secondary);
-            color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .search-container {
-            display: flex;
-            align-items: center;
-            background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 0.5rem 1rem;
-            width: 70%;
-            border: 1px solid #333;
-            transition: all 0.3s ease;
-        }
-
-        .search-container:focus-within {
-            border-color: var(--accent-red);
-            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.2);
-        }
-
-        .search-input {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            width: 100%;
-            outline: none;
-            font-size: 0.9rem;
-        }
-
-        .search-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            cursor: pointer;
-            padding: 0.3rem;
-        }
-
-        .search-btn:hover {
-            color: var(--accent-red);
-        }
-
-        /* Navigation */
-        .nav-tabs {
-            display: flex;
-            justify-content: space-around;
-            background-color: var(--secondary-bg);
-            padding: 0.5rem 0;
-            position: sticky;
-            top: 60px;
-            z-index: 99;
-        }
-
-        .nav-tab {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            transition: all 0.3s ease;
-            border-radius: 8px;
-        }
-
-        .nav-tab:hover {
-            background-color: rgba(229, 9, 20, 0.1);
-        }
-
-        .nav-tab.active {
-            color: var(--accent-red);
-            background-color: rgba(229, 9, 20, 0.1);
-            transform: scale(1.05);
-        }
-
-        .nav-tab i {
-            font-size: 1.2rem;
-            margin-bottom: 0.2rem;
-        }
-
-        /* Main Content */
-        .main-content {
-            padding: 1rem;
-            min-height: calc(100vh - 140px);
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            margin: 1rem 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .section-title span {
-            color: var(--accent-yellow);
-            font-size: 0.9rem;
-            cursor: pointer;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .section-title span:hover {
-            background-color: rgba(245, 197, 24, 0.1);
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (min-width: 768px) {
-            .content-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (min-width: 1024px) {
-            .content-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
-        .content-card {
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
-        }
-
-        .content-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-image {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 0.8rem;
-        }
-
-        .card-title {
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .card-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        /* Modal de Séries */
-        .series-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1500;
-        }
-
-        .series-modal-content {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-
-        .season-selector {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .season-btn {
-            padding: 0.5rem 1rem;
-            background: var(--secondary-bg);
-            border: none;
-            border-radius: 4px;
-            color: var(--text-primary);
-            cursor: pointer;
-        }
-
-        .season-btn.active {
-            background: var(--accent-red);
-        }
-
-        .episodes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .episode-card {
-            background: var(--secondary-bg);
-            padding: 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .episode-card:hover {
-            background: var(--accent-red);
-            transform: translateY(-2px);
-        }
-
-        /* Video Player */
-        #video-player {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black;
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-        }
-
-        .player-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1001;
-        }
-
-        .close-player {
-            background: none;
-            border: none;
+            background: linear-gradient(135deg, var(--primary-color), #1a252f);
             color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0.5rem;
-            z-index: 1002;
+            padding: 25px 0;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        .close-player:hover {
-            color: var(--accent-red);
+        
+        h1 {
+            font-size: 2.4rem;
+            margin-bottom: 10px;
+            font-weight: 300;
         }
-
-        .video-container {
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+        
+        .search-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        #search-input {
             flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            width: 100%;
-            height: calc(100% - 120px);
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
-
-        #video-element {
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
-            max-height: 100%;
-            background: black;
+        
+        #search-input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
         }
-
-        .youtube-container {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: black;
-        }
-
-        .player-controls {
-            padding: 1rem;
-            background-color: rgba(0, 0, 0, 0.8);
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            z-index: 1001;
-        }
-
-        .control-btn {
-            background: none;
-            border: none;
+        
+        button {
+            background-color: var(--secondary-color);
             color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
-        .control-btn:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        /* Modal de Assinatura */
-        .subscription-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .subscription-modal {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 10px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-        }
-
-        .plan-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin: 2rem 0;
-        }
-
-        .plan-card {
-            background: var(--secondary-bg);
-            padding: 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .plan-card:hover {
-            border-color: var(--accent-red);
-        }
-
-        .plan-card.selected {
-            border-color: var(--accent-yellow);
-            background: rgba(245, 197, 24, 0.1);
-        }
-
-        .plan-price {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent-yellow);
-            margin: 0.5rem 0;
-        }
-
-        .payment-methods {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin: 1rem 0;
-        }
-
-        .payment-method {
-            padding: 0.8rem 1.5rem;
-            background: var(--secondary-bg);
             border: none;
-            border-radius: 6px;
-            color: var(--text-primary);
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .example-queries {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .example-btn {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            border: 2px solid #e0e0e0;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
-
-        .payment-method.active {
-            background: var(--accent-red);
+        
+        .example-btn:hover {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+            transform: translateY(-1px);
         }
-
-        .pix-code {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            color: black;
-            text-align: center;
+        
+        .results-section {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: none;
+            animation: fadeIn 0.5s ease;
         }
-
-        /* Utility */
-        .hidden {
-            display: none !important;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-
-        .active-tab {
+        
+        .results-section.active {
             display: block;
         }
-
-        .favorites-empty {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
+        
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
         }
-
-        .favorites-empty i {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            color: var(--accent-red);
+        
+        .results-count {
+            font-size: 1.2rem;
+            color: var(--dark-color);
+            font-weight: 600;
         }
-
-        .search-results {
-            background-color: var(--card-bg);
+        
+        .clear-btn {
+            background-color: var(--accent-color);
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+        
+        .clear-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .result-item {
+            padding: 20px;
+            border: 2px solid #f8f9fa;
             border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: #fafbfc;
         }
-
-        .search-count {
-            color: var(--accent-yellow);
-            margin-bottom: 1rem;
+        
+        .result-item:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.15);
+            transform: translateY(-2px);
+            background: white;
         }
-
-        .youtube-badge {
-            background: #ff0000;
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        
+        .result-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            line-height: 1.4;
+            flex: 1;
+        }
+        
+        .result-source {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
             color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            margin-left: 5px;
-        }
-
-        .streamtape-badge {
-            background: #ff6b00;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            margin-left: 5px;
-        }
-
-        .player-type-indicator {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 10px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 6px;
             font-size: 0.8rem;
-            z-index: 1003;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .result-content {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .result-articles {
+            font-size: 0.9rem;
+            color: #666;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #856404;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .no-results i {
+            font-size: 3rem;
+            color: #bdc3c7;
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 25px 0;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            border-top: 1px solid #ecf0f1;
+            margin-top: 40px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--secondary-color);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .result-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .result-source {
+                align-self: flex-start;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .search-section, .results-section {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .example-queries {
+                gap: 8px;
+            }
+            
+            .example-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Tela de Login -->
-    <div id="login-overlay" class="login-overlay">
-        <div class="login-modal">
-            <div class="logo">CONDESSA IPTV</div>
-            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Faça login para acessar o conteúdo</p>
-            
-            <input type="text" id="login-email" class="login-input" placeholder="E-mail">
-            <input type="password" id="login-password" class="login-input" placeholder="Senha">
-            
-            <button id="login-btn" class="login-btn">Entrar</button>
-            
-            <div class="register-link" onclick="showRegister()">
-                Não tem conta? Cadastre-se
-            </div>
-            
-            <div class="admin-link" onclick="showAdminLogin()">
-                Acesso Administrativo
-            </div>
-        </div>
-    </div>
-
-    <!-- Tela de Cadastro -->
-    <div id="register-overlay" class="login-overlay hidden">
-        <div class="login-modal">
-            <div class="logo">CONDESSA IPTV</div>
-            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Crie sua conta</p>
-            
-            <input type="text" id="register-email" class="login-input" placeholder="E-mail">
-            <input type="password" id="register-password" class="login-input" placeholder="Senha (mínimo 6 caracteres)">
-            <input type="password" id="register-confirm-password" class="login-input" placeholder="Confirmar Senha">
-            
-            <button id="register-btn" class="login-btn">Cadastrar</button>
-            
-            <div class="admin-link" onclick="showUserLogin()">
-                Voltar para Login
-            </div>
-        </div>
-    </div>
-
-    <!-- Tela de Login Admin -->
-    <div id="admin-login-overlay" class="login-overlay hidden">
-        <div class="login-modal">
-            <div class="logo">CONDESSA ADMIN</div>
-            <p style="margin-bottom: 2rem; color: var(--text-secondary);">Acesso Restrito</p>
-            
-            <input type="text" id="admin-username" class="login-input" placeholder="Admin Usuário">
-            <input type="password" id="admin-password" class="login-input" placeholder="Admin Senha">
-            
-            <button id="admin-login-btn" class="login-btn">Acessar Dashboard</button>
-            
-            <div class="admin-link" onclick="showUserLogin()">
-                Voltar para Login de Usuário
-            </div>
-        </div>
-    </div>
-
-    <!-- Dashboard Admin -->
-    <div id="dashboard-overlay" class="dashboard-overlay hidden">
-        <div class="dashboard-header">
-            <h1>Dashboard Administrativo</h1>
-            <button class="logout-btn" onclick="logoutAdmin()">Sair</button>
-        </div>
-
-        <div class="dashboard-tabs">
-            <button class="dashboard-tab active" onclick="switchAdminTab('overview')">Visão Geral</button>
-            <button class="dashboard-tab" onclick="switchAdminTab('users')">Gerenciar Usuários</button>
-            <button class="dashboard-tab" onclick="switchAdminTab('movies')">Gerenciar Filmes</button>
-            <button class="dashboard-tab" onclick="switchAdminTab('series')">Gerenciar Séries</button>
-            <button class="dashboard-tab" onclick="switchAdminTab('tv')">Gerenciar Canais TV</button>
-        </div>
-
-        <!-- Visão Geral -->
-        <div id="admin-overview" class="admin-tab-content">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Usuários Ativos</h3>
-                    <div class="stat-number" id="active-users-count">0</div>
-                    <p>Assinaturas válidas</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Receita Mensal</h3>
-                    <div class="stat-number" id="monthly-revenue">R$ 0</div>
-                    <p>Previsão atual</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Total de Usuários</h3>
-                    <div class="stat-number" id="total-users">0</div>
-                    <p>Cadastrados no sistema</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Conteúdo Total</h3>
-                    <div class="stat-number" id="total-content">0</div>
-                    <p>Filmes + Séries + Canais</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Gerenciar Usuários -->
-        <div id="admin-users" class="admin-tab-content hidden">
-            <div class="management-form">
-                <h3>Adicionar Novo Usuário</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">E-mail</label>
-                        <input type="text" id="new-username" class="form-input" placeholder="E-mail do usuário">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Senha</label>
-                        <input type="password" id="new-password" class="form-input" placeholder="Senha">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Plano</label>
-                        <select id="new-user-plan" class="form-select">
-                            <option value="7">7 Dias - R$ 10</option>
-                            <option value="30">30 Dias - R$ 30</option>
-                            <option value="90">90 Dias - R$ 75</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Status</label>
-                        <select id="new-user-status" class="form-select">
-                            <option value="active">Ativo</option>
-                            <option value="pending">Pendente</option>
-                            <option value="expired">Expirado</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="submit-btn" onclick="addNewUser()">Adicionar Usuário</button>
-            </div>
-
-            <div class="user-management">
-                <h3>Usuários Cadastrados</h3>
-                <div class="user-list" id="user-list">
-                    <!-- Lista de usuários será gerada aqui -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Gerenciar Filmes -->
-        <div id="admin-movies" class="admin-tab-content hidden">
-            <div class="management-form">
-                <h3>Adicionar Novo Filme</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Título</label>
-                        <input type="text" id="movie-title" class="form-input" placeholder="Título do filme">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Gênero</label>
-                        <input type="text" id="movie-genre" class="form-input" placeholder="Ação, Drama, etc">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Avaliação</label>
-                        <input type="number" id="movie-rating" class="form-input" placeholder="0.0 a 10.0" step="0.1" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL da Imagem</label>
-                        <input type="text" id="movie-image" class="form-input" placeholder="https://...">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL do Vídeo</label>
-                        <input type="text" id="movie-video" class="form-input" placeholder="https://... (YouTube ou vídeo direto)">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição</label>
-                        <textarea id="movie-description" class="form-textarea" placeholder="Sinopse do filme"></textarea>
-                    </div>
-                </div>
-                <button class="submit-btn" onclick="addNewMovie()">Adicionar Filme</button>
-            </div>
-
-            <div class="content-management">
-                <h3>Filmes Cadastrados</h3>
-                <div class="content-list" id="movies-list">
-                    <!-- Lista de filmes será gerada aqui -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Gerenciar Séries -->
-        <div id="admin-series" class="admin-tab-content hidden">
-            <div class="management-form">
-                <h3>Adicionar Nova Série</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Título da Série</label>
-                        <input type="text" id="series-title" class="form-input" placeholder="Título da série">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Gênero</label>
-                        <input type="text" id="series-genre" class="form-input" placeholder="Drama, Comédia, etc">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Avaliação</label>
-                        <input type="number" id="series-rating" class="form-input" placeholder="0.0 a 10.0" step="0.1" min="0" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL da Imagem</label>
-                        <input type="text" id="series-image" class="form-input" placeholder="https://...">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição</label>
-                        <textarea id="series-description" class="form-textarea" placeholder="Sinopse da série"></textarea>
-                    </div>
-                </div>
-
-                <h4 style="margin-top: 2rem; margin-bottom: 1rem;">Adicionar Temporadas e Episódios</h4>
-                <div id="seasons-container">
-                    <!-- Temporadas serão adicionadas aqui -->
-                </div>
-                <button type="button" class="submit-btn" onclick="addSeason()" style="background: #2196F3; margin-top: 1rem;">
-                    + Adicionar Temporada
-                </button>
-
-                <button class="submit-btn" onclick="addNewSeries()" style="margin-top: 2rem;">Adicionar Série</button>
-            </div>
-
-            <div class="content-management">
-                <h3>Séries Cadastradas</h3>
-                <div class="content-list" id="series-list">
-                    <!-- Lista de séries será gerada aqui -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Gerenciar Canais TV -->
-        <div id="admin-tv" class="admin-tab-content hidden">
-            <div class="management-form">
-                <h3>Adicionar Novo Canal</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nome do Canal</label>
-                        <input type="text" id="channel-name" class="form-input" placeholder="Nome do canal">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Categoria</label>
-                        <input type="text" id="channel-category" class="form-input" placeholder="Esportes, Notícias, etc">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Avaliação</label>
-                        <input type="number" id="channel-rating" class="form-input" placeholder="0.0 a 5.0" step="0.1" min="0" max="5">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL da Logo</label>
-                        <input type="text" id="channel-logo" class="form-input" placeholder="https://...">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL do Stream</label>
-                        <input type="text" id="channel-stream" class="form-input" placeholder="https://... (YouTube ou stream direto)">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">País</label>
-                        <input type="text" id="channel-country" class="form-input" placeholder="BR, US, etc">
-                    </div>
-                </div>
-                <button class="submit-btn" onclick="addNewChannel()">Adicionar Canal</button>
-            </div>
-
-            <div class="content-management">
-                <h3>Canais Cadastrados</h3>
-                <div class="content-list" id="channels-list">
-                    <!-- Lista de canais será gerada aqui -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Aplicação Principal (aparece após login) -->
-    <div id="main-app" class="hidden">
-        <!-- Header -->
+    <div class="container">
         <header>
-            <div class="header-logo">CONDESSA</div>
-            <div class="search-container">
-                <input type="text" class="search-input" placeholder="Buscar filmes, séries, canais..." id="search-input">
-                <button class="search-btn" id="search-btn">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-            <div class="user-menu">
-                <button class="admin-btn" onclick="showAdminLogin()">
-                    <i class="fas fa-cog"></i> Admin
-                </button>
-                <button class="logout-btn-small" onclick="logoutUser()">
-                    <i class="fas fa-sign-out-alt"></i> Sair
-                </button>
-            </div>
+            <h1>Consulta Completa ao Regulamento</h1>
+            <p class="subtitle">Premiere Morumbi Condomínio Clube - Sistema de Busca Inteligente</p>
         </header>
-
-        <!-- Navigation -->
-        <div class="nav-tabs">
-            <div class="nav-tab active" data-tab="home">
-                <i class="fas fa-home"></i>
-                <span>Início</span>
-            </div>
-            <div class="nav-tab" data-tab="movies">
-                <i class="fas fa-film"></i>
-                <span>Filmes</span>
-            </div>
-            <div class="nav-tab" data-tab="series">
-                <i class="fas fa-tv"></i>
-                <span>Séries</span>
-            </div>
-            <div class="nav-tab" data-tab="live">
-                <i class="fas fa-broadcast-tower"></i>
-                <span>Ao Vivo</span>
-            </div>
-            <div class="nav-tab" data-tab="favorites">
-                <i class="fas fa-heart"></i>
-                <span>Favoritos</span>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Home -->
-            <div id="home" class="tab-content active-tab">
-                <div class="section-title">
-                    <h2>Filmes em Destaque</h2>
-                    <span onclick="switchTab('movies')">Ver Todos</span>
-                </div>
-                <div class="content-grid" id="home-movies"></div>
-
-                <div class="section-title">
-                    <h2>Séries em Alta</h2>
-                    <span onclick="switchTab('series')">Ver Todos</span>
-                </div>
-                <div class="content-grid" id="home-series"></div>
-
-                <div class="section-title">
-                    <h2>Canais Populares</h2>
-                    <span onclick="switchTab('live')">Ver Todos</span>
-                </div>
-                <div class="content-grid" id="home-channels"></div>
-            </div>
-
-            <!-- Movies -->
-            <div id="movies" class="tab-content">
-                <div class="section-title">
-                    <h2>Todos os Filmes</h2>
-                </div>
-                <div class="content-grid" id="all-movies"></div>
-            </div>
-
-            <!-- Series -->
-            <div id="series" class="tab-content">
-                <div class="section-title">
-                    <h2>Todas as Séries</h2>
-                </div>
-                <div class="content-grid" id="all-series"></div>
-            </div>
-
-            <!-- Live TV -->
-            <div id="live" class="tab-content">
-                <div class="section-title">
-                    <h2>Canais Ao Vivo</h2>
-                </div>
-                <div class="content-grid" id="all-channels"></div>
-            </div>
-
-            <!-- Favorites -->
-            <div id="favorites" class="tab-content">
-                <div class="section-title">
-                    <h2>Meus Favoritos</h2>
-                </div>
-                <div class="content-grid" id="favorites-content"></div>
-                <div id="empty-favorites" class="favorites-empty">
-                    <i class="fas fa-heart"></i>
-                    <h3>Nenhum favorito</h3>
-                    <p>Adicione conteúdos aos favoritos</p>
-                </div>
-            </div>
-
-            <!-- Search Results -->
-            <div id="search" class="tab-content">
-                <div class="section-title">
-                    <h2>Resultados da Busca</h2>
-                    <span onclick="clearSearch()">Limpar</span>
-                </div>
-                <div class="content-grid" id="search-results"></div>
-                <div id="no-results" class="favorites-empty hidden">
-                    <i class="fas fa-search"></i>
-                    <h3>Nenhum resultado encontrado</h3>
-                    <p>Tente outros termos de busca</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de Séries -->
-        <div id="series-modal" class="series-modal hidden">
-            <div class="series-modal-content">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 id="series-modal-title">Selecionar Episódio</h2>
-                    <button class="close-player" onclick="closeSeriesModal()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div id="season-selector" class="season-selector">
-                    <!-- Botões de temporada serão gerados aqui -->
-                </div>
-                
-                <div id="episodes-container" class="episodes-grid">
-                    <!-- Episódios serão gerados aqui -->
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal de Assinatura -->
-        <div id="subscription-overlay" class="subscription-overlay hidden">
-            <div class="subscription-modal">
-                <h2>Assine Agora</h2>
-                <p>Escolha seu plano para acessar todo o conteúdo</p>
-                
-                <div class="plan-options">
-                    <div class="plan-card" data-plan="7" data-price="10">
-                        <h3>7 Dias</h3>
-                        <div class="plan-price">R$ 10,00</div>
-                        <small>Teste grátis por 24h</small>
-                    </div>
-                    <div class="plan-card" data-plan="30" data-price="30">
-                        <h3>30 Dias</h3>
-                        <div class="plan-price">R$ 30,00</div>
-                        <small>Melhor custo-benefício</small>
-                    </div>
-                    <div class="plan-card" data-plan="90" data-price="75">
-                        <h3>90 Dias</h3>
-                        <div class="plan-price">R$ 75,00</div>
-                        <small>Economize 17%</small>
-                    </div>
-                </div>
-
-                <div class="payment-methods">
-                    <button class="payment-method active" data-method="pix">PIX</button>
-                    <button class="payment-method" data-method="card">Cartão</button>
-                </div>
-
-                <div id="pix-payment" class="payment-section">
-                    <div class="pix-code">
-                        <p><strong>Chave PIX:</strong></p>
-                        <p id="pix-key">condessa@email.com</p>
-                        <p><small>Envie o comprovante para WhatsApp</small></p>
-                    </div>
-                </div>
-
-                <div id="card-payment" class="payment-section hidden">
-                    <p>Pagamento com cartão em breve</p>
-                </div>
-
-                <button id="confirm-payment" class="control-btn" style="background: var(--accent-yellow); color: black; margin-top: 1rem;">
-                    Confirmar Pagamento
-                </button>
-
-                <button id="close-subscription" class="control-btn" style="margin-top: 0.5rem;">
-                    Fechar
+        
+        <section class="search-section">
+            <h2 style="margin-bottom: 15px; color: var(--primary-color);">Encontre a regra que você precisa</h2>
+            <p style="margin-bottom: 20px; color: #666;">Descreva sua situação ou dúvida para encontrar os artigos relevantes nos regulamentos:</p>
+            
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Ex: fumar, horário de silêncio, uso da piscina, vaga de garagem...">
+                <button id="search-btn">
+                    <span id="search-text">Pesquisar</span>
+                    <span id="search-loading" style="display: none;">Buscando...</span>
                 </button>
             </div>
-        </div>
-
-        <!-- Video Player -->
-        <div id="video-player">
-            <div class="player-header">
-                <div id="player-title">Título do Vídeo</div>
-                <button class="close-player" id="close-video-player">
-                    <i class="fas fa-times"></i>
+            
+            <p style="margin-bottom: 15px; color: #666; font-weight: 500;">Busca rápida por tópicos frequentes:</p>
+            <div class="example-queries">
+                <button class="example-btn" data-query="fumar">Fumar</button>
+                <button class="example-btn" data-query="silêncio">Horário de Silêncio</button>
+                <button class="example-btn" data-query="piscina">Uso da Piscina</button>
+                <button class="example-btn" data-query="mudança">Mudança</button>
+                <button class="example-btn" data-query="vaga">Vaga de Garagem</button>
+                <button class="example-btn" data-query="animal">Animal de Estimação</button>
+                <button class="example-btn" data-query="obra">Obra/Reforma</button>
+                <button class="example-btn" data-query="multa">Multas</button>
+                <button class="example-btn" data-query="visitante">Visitantes</button>
+                <button class="example-btn" data-query="criança">Crianças</button>
+            </div>
+        </section>
+        
+        <section class="results-section" id="results-section">
+            <div class="results-header">
+                <div class="results-count" id="results-count">0 resultados encontrados</div>
+                <button class="clear-btn" id="clear-results">
+                    <span>✕</span> Limpar Busca
                 </button>
             </div>
-            <div class="video-container">
-                <div class="player-type-indicator" id="player-type">Player de Vídeo</div>
-                <video id="video-element" controls></video>
-                <iframe id="youtube-element" class="youtube-container" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen>
-                </iframe>
+            
+            <div id="results-container">
+                <!-- Os resultados serão inseridos aqui via JavaScript -->
             </div>
-            <div class="player-controls">
-                <button class="control-btn" id="play-btn">
-                    <i class="fas fa-play"></i>
-                </button>
-                <button class="control-btn" id="pause-btn">
-                    <i class="fas fa-pause"></i>
-                </button>
-                <button class="control-btn" id="fullscreen-btn">
-                    <i class="fas fa-expand"></i>
-                </button>
-            </div>
-        </div>
+        </section>
+        
+        <footer>
+            <p>Premiere Morumbi Condomínio Clube | Sistema de consulta completo aos regulamentos</p>
+            <p style="margin-top: 8px; font-size: 0.8rem; opacity: 0.7;">Atualizado com todos os artigos dos regulamentos geral e da garagem</p>
+        </footer>
     </div>
 
     <script>
-        // 🔥 CONFIGURAÇÃO DO FIREBASE
-        const firebaseConfig = {
-            apiKey: "AIzaSyCWS0jcIeAySuIaDSBqSe5MtQjDzfmfUsY",
-            authDomain: "condessa-c150b.firebaseapp.com",
-            projectId: "condessa-c150b",
-            storageBucket: "condessa-c150b.firebasestorage.app",
-            messagingSenderId: "563703688633",
-            appId: "1:563703688633:web:5c6d0db4e50a17341e5a68"
-        };
+        // BASE DE DADOS OTIMIZADA - Removendo duplicatas e corrigindo problemas
+        const regulations = [
+            // REGULAMENTO GERAL - Disposições Gerais
+            {
+                id: 1,
+                title: "Obrigatoriedade do Regulamento",
+                content: "Todos os proprietários, inquilinos e ocupantes ficam obrigados a cumprir as determinações do Regulamento Geral.",
+                articles: "Art. 1º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["obrigatório", "cumprir", "proprietários", "inquilinos", "ocupantes", "regulamento"]
+            },
+            {
+                id: 2,
+                title: "Pagamento de Taxas Condominiais",
+                content: "Todos os condôminos ficam obrigados a contribuir para as despesas comuns do Condomínio nos prazos estipulados.",
+                articles: "Art. 2º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["taxa", "condomínio", "pagamento", "despesa", "contribuição", "prazo"]
+            },
+            {
+                id: 3,
+                title: "Aplicação de Multas",
+                content: "Transgressões ao regulamento, após advertência por escrita, ensejarão aplicação de multa em caso de reincidência. Em casos graves, a multa pode ser aplicada diretamente.",
+                articles: "Art. 3º, §1º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["multa", "advertência", "reincidência", "infração", "penalidade", "grave"]
+            },
+            {
+                id: 4,
+                title: "Honorários Advocatícios",
+                content: "Taxas condominiais, multas, rateios em atraso sujeitam-se ao acréscimo de 20% de honorários advocatícios, além de despesas administrativas e de cobrança.",
+                articles: "Art. 3º, §2º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["honorários", "advocatícios", "20%", "atraso", "cobrança", "despesa"]
+            },
+            {
+                id: 5,
+                title: "Recadastramento de Moradores",
+                content: "O Condomínio poderá exigir o recadastramento dos moradores e fornecimento de documentos sempre que necessário à segurança e regularidade administrativa.",
+                articles: "Art. 3º, §3º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["recadastramento", "documento", "identificação", "segurança", "morador"]
+            },
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+            // PORTARIA
+            {
+                id: 6,
+                title: "Portões Permanentemente Fechados",
+                content: "Os portões de entrada que dão acesso ao Condomínio serão mantidos permanentemente fechados.",
+                articles: "Art. 8º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["portão", "fechado", "acesso", "entrada", "segurança"]
+            },
+            {
+                id: 7,
+                title: "Identificação de Visitantes",
+                content: "Nenhum estranho poderá ingressar no Condomínio sem ser previamente identificado e autorizado pelo condômino.",
+                articles: "Art. 9º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["visitante", "identificação", "autorização", "acesso", "portaria"]
+            },
+            {
+                id: 8,
+                title: "Horário para Corretores de Imóveis",
+                content: "Corretores devidamente inscritos no CRECI podem entrar de segunda a sexta das 08:00 às 17:00 e sábados das 08:00 às 12:00, mediante autorização prévia por escrito.",
+                articles: "Art. 12 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["corretor", "CRECI", "horário", "autorização", "escrito", "visita"]
+            },
 
-        // 🔐 **SISTEMA DE AUTENTICAÇÃO ATUALIZADO**
-        const ADMIN_CREDENTIALS = { username: '123', password: '123' };
-        let currentUser = null;
-        let isAdmin = false;
+            // UNIDADES AUTÔNOMAS
+            {
+                id: 9,
+                title: "Uso Exclusivamente Residencial",
+                content: "As unidades autônomas destinam-se a fins estritamente residenciais, sendo proibida utilização para atividades industriais, comerciais ou prestação de serviços.",
+                articles: "Art. 16 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["residencial", "comercial", "industrial", "proibido", "atividade", "serviço"]
+            },
+            {
+                id: 10,
+                title: "Horário de Silêncio",
+                content: "No período das 22:00 às 08:00, cumpre aos moradores guardar silêncio, evitando a produção de ruídos que possam perturbar o sossego dos demais.",
+                articles: "Art. 7º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["silêncio", "horário", "22h", "noite", "sossego", "ruído", "repouso"]
+            },
+            {
+                id: 11,
+                title: "Proibição de Ruídos Excessivos",
+                content: "É proibido utilizar aparelhos sonoros, vídeos, instrumentos musicais, alto-falantes que provoquem ruídos de alta intensidade a qualquer hora.",
+                articles: "Art. 31 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["ruído", "barulho", "som", "instrumento", "alto-falante", "proibido"]
+            },
 
-        // 🎬 **SISTEMA DE CONTEÚDO**
-        let contentData = JSON.parse(localStorage.getItem('condessa_content')) || {
-            movies: [],
-            series: [],
-            channels: []
-        };
+            // ANIMAIS
+            {
+                id: 12,
+                title: "Porte de Animais Permitido",
+                content: "Somente será permitida a permanência de animais domésticos de pequeno e médio porte (até 25kg).",
+                articles: "Art. 35 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["animal", "porte", "pequeno", "médio", "peso", "permitido", "cão"]
+            },
+            {
+                id: 13,
+                title: "Limpeza de Dejetos de Animais",
+                content: "Os condôminos que mantiverem animais serão responsáveis pela imediata remoção de excrementos sob pena de multa progressiva.",
+                articles: "Art. 38 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["animal", "dejeto", "fezes", "limpeza", "remoção", "multa", "responsabilidade"]
+            },
 
-        // 👥 **SISTEMA DE USUÁRIOS ATUALIZADO**
-        let usersLocalData = JSON.parse(localStorage.getItem('condessa_users_local')) || {};
+            // PISCINAS
+            {
+                id: 14,
+                title: "Uso da Piscina Adulto",
+                content: "A piscina destina-se ao uso exclusivo dos condôminos e seus familiares residentes. É permitido o ingresso de até 2 visitantes por unidade.",
+                articles: "Art. 73 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["piscina", "adulto", "condômino", "visitante", "2 pessoas", "acompanhado"]
+            },
+            {
+                id: 15,
+                title: "Crianças na Piscina Adulto",
+                content: "Crianças menores de 10 anos somente podem frequentar a piscina adulta quando acompanhadas de seus pais ou responsáveis.",
+                articles: "Art. 77, §6º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["piscina", "criança", "10 anos", "acompanhamento", "responsável", "adulto"]
+            },
 
-        // 🆕 **FUNÇÕES PARA STREAMTAPE**
-        function isStreamtapeUrl(url) {
-            if (!url) return false;
-            const streamtapeRegex = /^(https?:\/\/)?(www\.)?streamtape\.com\/(v|e)\/[a-zA-Z0-9]+/;
-            return streamtapeRegex.test(url);
-        }
+            // FUMAR - Todas as proibições
+            {
+                id: 16,
+                title: "Proibição de Fumar em Elevadores",
+                content: "Dentro dos elevadores e demais locais fechados, não é permitido fumar, nem portar aceso cigarros, charutos, cachimbos e similares.",
+                articles: "Art. 52 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["fumar", "cigarro", "elevador", "local fechado", "proibido", "charuto"]
+            },
+            {
+                id: 17,
+                title: "Proibição de Fumar na Garagem",
+                content: "Por motivos de segurança é proibido fumar, acender fósforos, isqueiros ou abrir chama de qualquer forma nos espaços reservados a guarda de veículos.",
+                articles: "Art. 13 (Garagem)",
+                source: "Regulamento da Garagem",
+                keywords: ["garagem", "fumar", "cigarro", "fogo", "chama", "segurança", "proibido"]
+            },
+            {
+                id: 18,
+                title: "Proibição de Fumar na Academia",
+                content: "É proibido o uso de cigarros, charutos, cachimbos e similares no interior da academia.",
+                articles: "Art. 87, §2º (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["academia", "fumar", "cigarro", "proibido", "charuto", "cachimbo"]
+            },
+            {
+                id: 19,
+                title: "Proibição de Fumar na Quadra",
+                content: "É terminantemente proibido fumar no local da quadra esportiva.",
+                articles: "Art. 95 (Geral)",
+                source: "Regulamento Geral",
+                keywords: ["fumar", "cigarro", "quadra", "esportiva", "esporte", "proibido"]
+            },
 
-        function extractStreamtapeId(url) {
-            const regex = /streamtape\.com\/(v|e)\/([a-zA-Z0-9]+)/;
-            const match = url.match(regex);
-            return match ? match[2] : null;
-        }
-
-        function getStreamtapeEmbedUrl(url) {
-            const videoId = extractStreamtapeId(url);
-            if (videoId) {
-                return `https://streamtape.com/e/${videoId}`;
+            // REGULAMENTO DA GARAGEM
+            {
+                id: 20,
+                title: "Uso Exclusivo das Vagas",
+                content: "As vagas destinadas às unidades condominiais são de uso exclusivo dos CONDÔMINOS, sendo vedado o uso de terceiros, inclusive visitantes.",
+                articles: "Art. 3º, §1º (Garagem)",
+                source: "Regulamento da Garagem",
+                keywords: ["vaga", "exclusivo", "condômino", "terceiro", "visitante", "proibido"]
+            },
+            {
+                id: 21,
+                title: "Estacionamento de Motos",
+                content: "As motocicletas devem ser estacionadas nos limites de uma vaga. Não é permitido estacionar moto e carro na mesma vaga.",
+                articles: "Art. 3º, §3º (Garagem)",
+                source: "Regulamento da Garagem",
+                keywords: ["moto", "motocicleta", "estacionamento", "vaga", "proibido", "veículo"]
+            },
+            {
+                id: 22,
+                title: "Velocidade na Garagem",
+                content: "Os veículos devem circular nas áreas da garagem na velocidade máxima de 10 km/h.",
+                articles: "Art. 16 (Garagem)",
+                source: "Regulamento da Garagem",
+                keywords: ["garagem", "velocidade", "10 km/h", "circulação", "segurança"]
             }
-            return null;
-        }
+        ];
 
-        function checkVideoUrlType(url) {
-            if (isYouTubeUrl(url)) {
-                return 'youtube';
-            } else if (isStreamtapeUrl(url)) {
-                return 'streamtape';
-            } else if (url.includes('.m3u8') || url.includes('.mp4') || url.includes('.webm')) {
-                return 'direct';
+        // Elementos DOM
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const searchText = document.getElementById('search-text');
+        const searchLoading = document.getElementById('search-loading');
+        const exampleBtns = document.querySelectorAll('.example-btn');
+        const resultsSection = document.getElementById('results-section');
+        const resultsCount = document.getElementById('results-count');
+        const resultsContainer = document.getElementById('results-container');
+        const clearResultsBtn = document.getElementById('clear-results');
+
+        // Estado da aplicação
+        let currentSearch = '';
+
+        // Função para mostrar/ocultar loading
+        function setLoading(loading) {
+            if (loading) {
+                searchText.style.display = 'none';
+                searchLoading.style.display = 'inline';
+                searchBtn.disabled = true;
             } else {
-                return 'unknown';
+                searchText.style.display = 'inline';
+                searchLoading.style.display = 'none';
+                searchBtn.disabled = false;
             }
         }
 
-        // 🗄️ **SISTEMA DE SINCRONIZAÇÃO COM FIRESTORE**
-        
-        // Salvar conteúdo no Firestore
-        async function saveContentToFirestore() {
+        // Função para destacar termos da pesquisa no texto
+        function highlightText(text, query) {
+            if (!query || !text) return text;
+            
             try {
-                await db.collection('content').doc('global').set({
-                    movies: contentData.movies,
-                    series: contentData.series,
-                    channels: contentData.channels,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log('✅ Conteúdo salvo no Firestore');
-            } catch (error) {
-                console.error('❌ Erro ao salvar no Firestore:', error);
+                const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`(${escapedQuery})`, 'gi');
+                return text.replace(regex, '<span class="highlight">$1</span>');
+            } catch (e) {
+                return text;
             }
         }
 
-        // Carregar conteúdo do Firestore
-        async function loadContentFromFirestore() {
-            try {
-                const doc = await db.collection('content').doc('global').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    contentData.movies = data.movies || [];
-                    contentData.series = data.series || [];
-                    contentData.channels = data.channels || [];
-                    localStorage.setItem('condessa_content', JSON.stringify(contentData));
-                    console.log('✅ Conteúdo carregado do Firestore');
-                }
-            } catch (error) {
-                console.error('❌ Erro ao carregar do Firestore:', error);
-                // Fallback para localStorage
-                const localData = localStorage.getItem('condessa_content');
-                if (localData) {
-                    contentData = JSON.parse(localData);
-                }
+        // Função para realizar a pesquisa
+        function performSearch(query) {
+            if (!query || !query.trim()) {
+                showMessage('Por favor, digite um termo para pesquisar.', 'error');
+                return;
             }
-        }
-
-        // Sincronizar usuários com Firestore
-        async function syncUsersToFirestore() {
-            try {
-                await db.collection('users').doc('allUsers').set({
-                    users: usersLocalData,
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                console.log('✅ Usuários sincronizados com Firestore');
-            } catch (error) {
-                console.error('❌ Erro ao sincronizar usuários:', error);
-            }
-        }
-
-        // Carregar usuários do Firestore
-        async function loadUsersFromFirestore() {
-            try {
-                const doc = await db.collection('users').doc('allUsers').get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    usersLocalData = data.users || {};
-                    localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                    console.log('✅ Usuários carregados do Firestore');
-                }
-            } catch (error) {
-                console.error('❌ Erro ao carregar usuários:', error);
-                // Fallback para localStorage
-                const localData = localStorage.getItem('condessa_users_local');
-                if (localData) {
-                    usersLocalData = JSON.parse(localData);
-                }
-            }
-        }
-
-        // 🔄 **SINCRONIZAÇÃO EM TEMPO REAL**
-        function setupRealtimeSync() {
-            // Ouvir mudanças no conteúdo
-            db.collection('content').doc('global')
-                .onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        contentData.movies = data.movies || [];
-                        contentData.series = data.series || [];
-                        contentData.channels = data.channels || [];
-                        localStorage.setItem('condessa_content', JSON.stringify(contentData));
-                        
-                        // Atualizar a interface se necessário
-                        if (!document.getElementById('main-app').classList.contains('hidden')) {
-                            loadHomeContent();
-                            if (currentTab === 'movies') loadAllMovies();
-                            if (currentTab === 'series') loadAllSeries();
-                            if (currentTab === 'live') loadAllChannels();
+            
+            currentSearch = query.trim();
+            setLoading(true);
+            
+            // Simular um pequeno delay para melhor UX
+            setTimeout(() => {
+                const searchTerms = currentSearch.toLowerCase().split(/\s+/).filter(term => term.length > 0);
+                const results = [];
+                
+                // Buscar nos regulamentos
+                regulations.forEach(regulation => {
+                    let relevance = 0;
+                    const searchText = `
+                        ${regulation.title.toLowerCase()}
+                        ${regulation.content.toLowerCase()}
+                        ${regulation.articles.toLowerCase()}
+                        ${regulation.keywords.join(' ')}
+                    `;
+                    
+                    // Verificar correspondência exata
+                    if (regulation.title.toLowerCase().includes(currentSearch.toLowerCase())) {
+                        relevance += 20;
+                    }
+                    
+                    if (regulation.content.toLowerCase().includes(currentSearch.toLowerCase())) {
+                        relevance += 10;
+                    }
+                    
+                    // Verificar correspondência nos artigos
+                    if (regulation.articles.toLowerCase().includes(currentSearch.toLowerCase())) {
+                        relevance += 15;
+                    }
+                    
+                    // Verificar correspondência nas palavras-chave
+                    regulation.keywords.forEach(keyword => {
+                        if (keyword.includes(currentSearch.toLowerCase())) {
+                            relevance += 8;
                         }
-                    }
-                });
-
-            // Ouvir mudanças nos usuários
-            db.collection('users').doc('allUsers')
-                .onSnapshot((doc) => {
-                    if (doc.exists) {
-                        const data = doc.data();
-                        usersLocalData = data.users || {};
-                        localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                        updateDashboard();
-                        if (document.getElementById('admin-users') && !document.getElementById('admin-users').classList.contains('hidden')) {
-                            loadUserList();
+                    });
+                    
+                    // Verificar correspondência com múltiplos termos
+                    searchTerms.forEach(term => {
+                        if (searchText.includes(term)) {
+                            relevance += 3;
                         }
-                    }
-                });
-        }
-
-        // 🔧 **FUNÇÕES DO PAINEL ADMIN**
-
-        function switchAdminTab(tabName) {
-            document.querySelectorAll('.admin-tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            
-            document.querySelectorAll('.dashboard-tab').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            document.getElementById(`admin-${tabName}`).classList.remove('hidden');
-            
-            document.querySelector(`[onclick="switchAdminTab('${tabName}')"]`).classList.add('active');
-            
-            if (tabName === 'users') loadUserList();
-            if (tabName === 'movies') loadMoviesList();
-            if (tabName === 'series') {
-                loadSeriesList();
-                initializeSeriesForm();
-            }
-            if (tabName === 'tv') loadChannelsList();
-        }
-
-        // 👥 **GERENCIAMENTO DE USUÁRIOS ATUALIZADO**
-
-        async function addNewUser() {
-            const email = document.getElementById('new-username').value;
-            const password = document.getElementById('new-password').value;
-            const plan = document.getElementById('new-user-plan').value;
-            const status = document.getElementById('new-user-status').value;
-
-            if (!email || !password) {
-                alert('Preencha e-mail e senha');
-                return;
-            }
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(async (userCredential) => {
-                    const user = userCredential.user;
-                    
-                    usersLocalData[user.uid] = {
-                        email: email,
-                        plan: plan,
-                        startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + parseInt(plan) * 24 * 60 * 60 * 1000).toISOString(),
-                        status: status,
-                        paymentMethod: 'admin',
-                        createdBy: 'admin',
-                        createdDate: new Date().toISOString()
-                    };
-
-                    localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                    
-                    // 🔥 SINCRONIZAR COM FIRESTORE
-                    await syncUsersToFirestore();
-                    
-                    document.getElementById('new-username').value = '';
-                    document.getElementById('new-password').value = '';
-                    
-                    alert('✅ Usuário adicionado com sucesso!');
-                    loadUserList();
-                    updateDashboard();
-                })
-                .catch((error) => {
-                    console.error('Erro ao criar usuário:', error);
-                    alert('Erro ao criar usuário: ' + error.message);
-                });
-        }
-
-        function loadUserList() {
-            const userList = document.getElementById('user-list');
-            userList.innerHTML = '';
-
-            Object.keys(usersLocalData).forEach(userId => {
-                const user = usersLocalData[userId];
-                const isActive = new Date(user.endDate) > new Date() && user.status === 'active';
-                
-                const userItem = document.createElement('div');
-                userItem.className = 'user-item';
-                userItem.innerHTML = `
-                    <div class="user-info">
-                        <strong>${user.email}</strong>
-                        <div style="font-size: 0.8rem; color: ${isActive ? '#4CAF50' : '#f44336'}">
-                            ${isActive ? '✅ Ativo' : '❌ ' + user.status} 
-                            - Plano: ${user.plan} dias - Expira: ${new Date(user.endDate).toLocaleDateString()}
-                        </div>
-                        <div style="font-size: 0.7rem; color: var(--text-secondary)">
-                            ID: ${userId}
-                        </div>
-                    </div>
-                    <div class="user-actions">
-                        <button class="action-btn btn-activate" onclick="activateUser('${userId}')">
-                            ${isActive ? 'Desativar' : 'Ativar'}
-                        </button>
-                        <button class="action-btn btn-edit" onclick="editUser('${userId}')">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteUser('${userId}')">Excluir</button>
-                    </div>
-                `;
-                
-                userList.appendChild(userItem);
-            });
-        }
-
-        async function activateUser(userId) {
-            const user = usersLocalData[userId];
-            if (user.status === 'active') {
-                user.status = 'expired';
-            } else {
-                user.status = 'active';
-                user.startDate = new Date().toISOString();
-                const planDays = parseInt(user.plan);
-                user.endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-            }
-            
-            localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-            
-            // 🔥 SINCRONIZAR COM FIRESTORE
-            await syncUsersToFirestore();
-            
-            loadUserList();
-            updateDashboard();
-        }
-
-        async function editUser(userId) {
-            const user = usersLocalData[userId];
-            const newPlan = prompt('Novo plano para ' + user.email + ' (dias):', user.plan);
-            if (newPlan !== null && !isNaN(newPlan)) {
-                user.plan = newPlan;
-                const planDays = parseInt(newPlan);
-                user.endDate = new Date(Date.now() + planDays * 24 * 60 * 60 * 1000).toISOString();
-                localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                
-                // 🔥 SINCRONIZAR COM FIRESTORE
-                await syncUsersToFirestore();
-                
-                alert('Plano atualizado!');
-                loadUserList();
-            }
-        }
-
-        async function deleteUser(userId) {
-            if (confirm(`Excluir usuário ${usersLocalData[userId].email}?`)) {
-                delete usersLocalData[userId];
-                localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                
-                // 🔥 SINCRONIZAR COM FIRESTORE
-                await syncUsersToFirestore();
-                
-                loadUserList();
-                updateDashboard();
-                alert('Usuário removido dos dados locais. Para remover completamente, use o Firebase Console.');
-            }
-        }
-
-        // 🎬 **GERENCIAMENTO DE FILMES ATUALIZADO**
-
-        async function addNewMovie() {
-            const movie = {
-                id: Date.now(),
-                title: document.getElementById('movie-title').value,
-                genre: document.getElementById('movie-genre').value,
-                rating: parseFloat(document.getElementById('movie-rating').value) || 0,
-                image: document.getElementById('movie-image').value || 'https://via.placeholder.com/300x450/333333/FFFFFF?text=Filme',
-                videoUrl: document.getElementById('movie-video').value || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                description: document.getElementById('movie-description').value,
-                type: 'movie',
-                addedDate: new Date().toISOString()
-            };
-
-            if (!movie.title) {
-                alert('Preencha pelo menos o título do filme');
-                return;
-            }
-
-            contentData.movies.push(movie);
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            
-            // 🔥 SALVAR NO FIRESTORE
-            await saveContentToFirestore();
-            
-            document.getElementById('movie-title').value = '';
-            document.getElementById('movie-genre').value = '';
-            document.getElementById('movie-rating').value = '';
-            document.getElementById('movie-image').value = '';
-            document.getElementById('movie-video').value = '';
-            document.getElementById('movie-description').value = '';
-            
-            alert('✅ Filme adicionado com sucesso!');
-            loadMoviesList();
-            updateDashboard();
-        }
-
-        function loadMoviesList() {
-            const moviesList = document.getElementById('movies-list');
-            moviesList.innerHTML = '';
-
-            contentData.movies.forEach(movie => {
-                const isYouTube = isYouTubeUrl(movie.videoUrl);
-                const isStreamtape = isStreamtapeUrl(movie.videoUrl);
-                let badge = '';
-                if (isYouTube) badge = '<span class="youtube-badge">YouTube</span>';
-                else if (isStreamtape) badge = '<span class="streamtape-badge">Streamtape</span>';
-                
-                const movieItem = document.createElement('div');
-                movieItem.className = 'content-item';
-                movieItem.innerHTML = `
-                    <div class="content-info">
-                        <strong>${movie.title} ${badge}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary)">
-                            ${movie.genre} • ⭐ ${movie.rating} • ${new Date(movie.addedDate).toLocaleDateString()}
-                        </div>
-                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">
-                            ${movie.description || 'Sem descrição'}
-                        </div>
-                    </div>
-                    <div class="content-actions">
-                        <button class="action-btn btn-edit" onclick="editMovie(${movie.id})">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteMovie(${movie.id})">Excluir</button>
-                    </div>
-                `;
-                
-                moviesList.appendChild(movieItem);
-            });
-        }
-
-        async function editMovie(movieId) {
-            const movie = contentData.movies.find(m => m.id === movieId);
-            if (!movie) {
-                alert('Filme não encontrado');
-                return;
-            }
-
-            const newTitle = prompt('Novo título:', movie.title);
-            if (newTitle === null) return;
-
-            const newGenre = prompt('Novo gênero:', movie.genre);
-            if (newGenre === null) return;
-
-            const newRating = prompt('Nova avaliação (0-10):', movie.rating);
-            if (newRating === null) return;
-
-            const newImage = prompt('Nova URL da imagem:', movie.image);
-            if (newImage === null) return;
-
-            const newVideo = prompt('Nova URL do vídeo:', movie.videoUrl);
-            if (newVideo === null) return;
-
-            const newDescription = prompt('Nova descrição:', movie.description);
-            if (newDescription === null) return;
-
-            movie.title = newTitle || movie.title;
-            movie.genre = newGenre || movie.genre;
-            movie.rating = parseFloat(newRating) || movie.rating;
-            movie.image = newImage || movie.image;
-            movie.videoUrl = newVideo || movie.videoUrl;
-            movie.description = newDescription || movie.description;
-
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            
-            // 🔥 SALVAR NO FIRESTORE
-            await saveContentToFirestore();
-            
-            loadMoviesList();
-            alert('✅ Filme atualizado com sucesso!');
-        }
-
-        async function deleteMovie(movieId) {
-            if (confirm('Excluir este filme?')) {
-                contentData.movies = contentData.movies.filter(movie => movie.id !== movieId);
-                localStorage.setItem('condessa_content', JSON.stringify(contentData));
-                
-                // 🔥 SALVAR NO FIRESTORE
-                await saveContentToFirestore();
-                
-                loadMoviesList();
-                updateDashboard();
-            }
-        }
-
-        // 📺 **GERENCIAMENTO DE SÉRIES COM TEMPORADAS E EPISÓDIOS ATUALIZADO**
-
-        let seasonCounter = 1;
-        let episodeCounters = {};
-
-        function initializeSeriesForm() {
-            const seasonsContainer = document.getElementById('seasons-container');
-            seasonsContainer.innerHTML = '';
-            seasonCounter = 1;
-            episodeCounters = {};
-            addSeason();
-        }
-
-        function addSeason() {
-            const seasonsContainer = document.getElementById('seasons-container');
-            const seasonId = seasonCounter;
-            
-            const seasonDiv = document.createElement('div');
-            seasonDiv.className = 'season-section';
-            seasonDiv.style.border = '1px solid #333';
-            seasonDiv.style.padding = '1rem';
-            seasonDiv.style.marginBottom = '1rem';
-            seasonDiv.style.borderRadius = '6px';
-            
-            seasonDiv.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 1rem;">
-                    <h4>Temporada ${seasonCounter}</h4>
-                    <button type="button" class="action-btn btn-delete" onclick="removeSeason(${seasonId})" style="margin-left: auto;">
-                        Remover Temporada
-                    </button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Número da Temporada</label>
-                        <input type="number" class="form-input season-number" value="${seasonCounter}" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Título da Temporada (opcional)</label>
-                        <input type="text" class="form-input season-title" placeholder="Ex: A Nova Ameaça">
-                    </div>
-                </div>
-                <div id="episodes-container-${seasonId}" class="episodes-container">
-                    <!-- Episódios serão adicionados aqui -->
-                </div>
-                <button type="button" class="submit-btn" onclick="addEpisode(${seasonId})" style="background: #4CAF50; margin-top: 1rem;">
-                    + Adicionar Episódio
-                </button>
-            `;
-            
-            seasonsContainer.appendChild(seasonDiv);
-            episodeCounters[seasonId] = 1;
-            addEpisode(seasonId);
-            seasonCounter++;
-        }
-
-        function removeSeason(seasonId) {
-            const seasonDiv = document.querySelector(`#seasons-container .season-section:nth-child(${seasonId})`);
-            if (seasonDiv) {
-                seasonDiv.remove();
-            }
-        }
-
-        function addEpisode(seasonId) {
-            const episodesContainer = document.getElementById(`episodes-container-${seasonId}`);
-            const episodeNumber = episodeCounters[seasonId];
-            
-            const episodeDiv = document.createElement('div');
-            episodeDiv.className = 'episode-item';
-            episodeDiv.style.border = '1px solid #444';
-            episodeDiv.style.padding = '1rem';
-            episodeDiv.style.marginBottom = '0.5rem';
-            episodeDiv.style.borderRadius = '4px';
-            
-            episodeDiv.innerHTML = `
-                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem;">
-                    <h5>Episódio ${episodeNumber}</h5>
-                    <button type="button" class="action-btn btn-delete" onclick="this.parentElement.parentElement.remove()" style="margin-left: auto; padding: 0.3rem 0.6rem; font-size: 0.7rem;">
-                        Remover
-                    </button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label class="form-label">Número do Episódio</label>
-                        <input type="number" class="form-input episode-number" value="${episodeNumber}" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Título do Episódio</label>
-                        <input type="text" class="form-input episode-title" placeholder="Título do episódio">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Duração (minutos)</label>
-                        <input type="number" class="form-input episode-duration" placeholder="60">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">URL do Vídeo</label>
-                        <input type="text" class="form-input episode-video" placeholder="https://... (YouTube ou vídeo direto)">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição</label>
-                        <textarea class="form-textarea episode-description" placeholder="Descrição do episódio"></textarea>
-                    </div>
-                </div>
-            `;
-            
-            episodesContainer.appendChild(episodeDiv);
-            episodeCounters[seasonId]++;
-        }
-
-        async function addNewSeries() {
-            const seriesTitle = document.getElementById('series-title').value;
-            const seriesGenre = document.getElementById('series-genre').value;
-            const seriesRating = parseFloat(document.getElementById('series-rating').value) || 0;
-            const seriesImage = document.getElementById('series-image').value || 'https://via.placeholder.com/300x450/333333/FFFFFF?text=Série';
-            const seriesDescription = document.getElementById('series-description').value;
-
-            if (!seriesTitle) {
-                alert('Preencha pelo menos o título da série');
-                return;
-            }
-
-            const seasons = [];
-            const seasonSections = document.querySelectorAll('.season-section');
-            
-            seasonSections.forEach((seasonSection, index) => {
-                const seasonNumber = parseInt(seasonSection.querySelector('.season-number').value) || (index + 1);
-                const seasonTitle = seasonSection.querySelector('.season-title').value || `Temporada ${seasonNumber}`;
-                
-                const episodes = [];
-                const episodeItems = seasonSection.querySelectorAll('.episode-item');
-                
-                episodeItems.forEach((episodeItem, epIndex) => {
-                    const episodeNumber = parseInt(episodeItem.querySelector('.episode-number').value) || (epIndex + 1);
-                    const episodeTitle = episodeItem.querySelector('.episode-title').value || `Episódio ${episodeNumber}`;
-                    const episodeDuration = parseInt(episodeItem.querySelector('.episode-duration').value) || 0;
-                    const episodeVideo = episodeItem.querySelector('.episode-video').value || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
-                    const episodeDescription = episodeItem.querySelector('.episode-description').value || '';
-                    
-                    episodes.push({
-                        number: episodeNumber,
-                        title: episodeTitle,
-                        duration: episodeDuration,
-                        videoUrl: episodeVideo,
-                        description: episodeDescription
                     });
-                });
-
-                seasons.push({
-                    number: seasonNumber,
-                    title: seasonTitle,
-                    episodes: episodes
-                });
-            });
-
-            const series = {
-                id: Date.now(),
-                title: seriesTitle,
-                genre: seriesGenre,
-                rating: seriesRating,
-                image: seriesImage,
-                description: seriesDescription,
-                seasons: seasons,
-                type: 'series',
-                addedDate: new Date().toISOString()
-            };
-
-            contentData.series.push(series);
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            
-            // 🔥 SALVAR NO FIRESTORE
-            await saveContentToFirestore();
-            
-            document.getElementById('series-title').value = '';
-            document.getElementById('series-genre').value = '';
-            document.getElementById('series-rating').value = '';
-            document.getElementById('series-image').value = '';
-            document.getElementById('series-description').value = '';
-            initializeSeriesForm();
-            
-            alert('✅ Série adicionada com sucesso!');
-            loadSeriesList();
-            updateDashboard();
-        }
-
-        function loadSeriesList() {
-            const seriesList = document.getElementById('series-list');
-            seriesList.innerHTML = '';
-
-            contentData.series.forEach(series => {
-                const totalSeasons = series.seasons.length;
-                const totalEpisodes = series.seasons.reduce((total, season) => total + season.episodes.length, 0);
-                
-                const seriesItem = document.createElement('div');
-                seriesItem.className = 'content-item';
-                seriesItem.innerHTML = `
-                    <div class="content-info">
-                        <strong>${series.title}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary)">
-                            ${series.genre} • ⭐ ${series.rating} • ${totalSeasons} temporadas • ${totalEpisodes} episódios
-                        </div>
-                        <div style="font-size: 0.7rem; margin-top: 0.3rem;">
-                            ${series.description || 'Sem descrição'}
-                        </div>
-                    </div>
-                    <div class="content-actions">
-                        <button class="action-btn btn-edit" onclick="editSeries(${series.id})">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteSeries(${series.id})">Excluir</button>
-                    </div>
-                `;
-                
-                seriesList.appendChild(seriesItem);
-            });
-        }
-
-        async function editSeries(seriesId) {
-            const series = contentData.series.find(s => s.id === seriesId);
-            if (!series) {
-                alert('Série não encontrada');
-                return;
-            }
-
-            const newTitle = prompt('Novo título:', series.title);
-            if (newTitle === null) return;
-
-            const newGenre = prompt('Novo gênero:', series.genre);
-            if (newGenre === null) return;
-
-            const newRating = prompt('Nova avaliação (0-10):', series.rating);
-            if (newRating === null) return;
-
-            const newImage = prompt('Nova URL da imagem:', series.image);
-            if (newImage === null) return;
-
-            const newDescription = prompt('Nova descrição:', series.description);
-            if (newDescription === null) return;
-
-            series.title = newTitle || series.title;
-            series.genre = newGenre || series.genre;
-            series.rating = parseFloat(newRating) || series.rating;
-            series.image = newImage || series.image;
-            series.description = newDescription || series.description;
-
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            
-            // 🔥 SALVAR NO FIRESTORE
-            await saveContentToFirestore();
-            
-            loadSeriesList();
-            alert('✅ Série atualizado com sucesso!');
-        }
-
-        async function deleteSeries(seriesId) {
-            if (confirm('Excluir esta série?')) {
-                contentData.series = contentData.series.filter(series => series.id !== seriesId);
-                localStorage.setItem('condessa_content', JSON.stringify(contentData));
-                
-                // 🔥 SALVAR NO FIRESTORE
-                await saveContentToFirestore();
-                
-                loadSeriesList();
-                updateDashboard();
-            }
-        }
-
-        // 📡 **GERENCIAMENTO DE CANAIS TV ATUALIZADO**
-
-        async function addNewChannel() {
-            const channel = {
-                id: Date.now(),
-                title: document.getElementById('channel-name').value,
-                genre: document.getElementById('channel-category').value,
-                rating: parseFloat(document.getElementById('channel-rating').value) || 0,
-                image: document.getElementById('channel-logo').value || 'https://via.placeholder.com/300x200/333333/FFFFFF?text=Canal',
-                videoUrl: document.getElementById('channel-stream').value || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-                country: document.getElementById('channel-country').value || 'BR',
-                type: 'channel',
-                addedDate: new Date().toISOString()
-            };
-
-            if (!channel.title) {
-                alert('Preencha pelo menos o nome do canal');
-                return;
-            }
-
-            contentData.channels.push(channel);
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            
-            // 🔥 SALVAR NO FIRESTORE
-            await saveContentToFirestore();
-            
-            document.getElementById('channel-name').value = '';
-            document.getElementById('channel-category').value = '';
-            document.getElementById('channel-rating').value = '';
-            document.getElementById('channel-logo').value = '';
-            document.getElementById('channel-stream').value = '';
-            document.getElementById('channel-country').value = '';
-            
-            alert('✅ Canal adicionado com sucesso!');
-            loadChannelsList();
-            updateDashboard();
-        }
-
-        function loadChannelsList() {
-            const channelsList = document.getElementById('channels-list');
-            channelsList.innerHTML = '';
-
-            contentData.channels.forEach(channel => {
-                const isYouTube = isYouTubeUrl(channel.videoUrl);
-                const isStreamtape = isStreamtapeUrl(channel.videoUrl);
-                let badge = '';
-                if (isYouTube) badge = '<span class="youtube-badge">YouTube</span>';
-                else if (isStreamtape) badge = '<span class="streamtape-badge">Streamtape</span>';
-                
-                const channelItem = document.createElement('div');
-                channelItem.className = 'content-item';
-                channelItem.innerHTML = `
-                    <div class="content-info">
-                        <strong>${channel.title} ${badge}</strong>
-                        <div style="font-size: 0.8rem; color: var(--text-secondary)">
-                            ${channel.genre} • ⭐ ${channel.rating} • ${channel.country} • ${new Date(channel.addedDate).toLocaleDateString()}
-                        </div>
-                    </div>
-                    <div class="content-actions">
-                        <button class="action-btn btn-edit" onclick="editChannel(${channel.id})">Editar</button>
-                        <button class="action-btn btn-delete" onclick="deleteChannel(${channel.id})">Excluir</button>
-                    </div>
-                `;
-                
-                channelsList.appendChild(channelItem);
-            });
-        }
-
-        async function editChannel(channelId) {
-            const channel = contentData.channels.find(c => c.id === channelId);
-            if (!channel) {
-                alert('Canal não encontrado');
-                return;
-            }
-
-            const newTitle = prompt('Novo nome do canal:', channel.title);
-            if (newTitle === null) return;
-
-            const newCategory = prompt('Nova categoria:', channel.genre);
-            if (newCategory === null) return;
-
-            const newRating = prompt('Nova avaliação (0-5):', channel.rating);
-            if (newRating === null) return;
-
-            const newLogo = prompt('Nova URL da logo:', channel.image);
-            if (newLogo === null) return;
-
-            const newStream = prompt('Nova URL do stream:', channel.videoUrl);
-            if (newStream === null) return;
-
-            const newCountry = prompt('Novo país:', channel.country);
-            if (newCountry === null) return;
-
-            channel.title = newTitle || channel.title;
-            channel.genre = newCategory || channel.genre;
-            channel.rating = parseFloat(newRating) || channel.rating;
-            channel.image = newLogo || channel.image;
-            channel.videoUrl = newStream || channel.videoUrl;
-            channel.country = newCountry || channel.country;
-
-            localStorage.setItem('condessa_content', JSON.stringify(contentData));
-            
-            // 🔥 SALVAR NO FIRESTORE
-            await saveContentToFirestore();
-            
-            loadChannelsList();
-            alert('✅ Canal atualizado com sucesso!');
-        }
-
-        async function deleteChannel(channelId) {
-            if (confirm('Excluir este canal?')) {
-                contentData.channels = contentData.channels.filter(channel => channel.id !== channelId);
-                localStorage.setItem('condessa_content', JSON.stringify(contentData));
-                
-                // 🔥 SALVAR NO FIRESTORE
-                await saveContentToFirestore();
-                
-                loadChannelsList();
-                updateDashboard();
-            }
-        }
-
-        // 📊 **ATUALIZAÇÃO DO DASHBOARD ATUALIZADA**
-
-        function updateDashboard() {
-            const activeUsers = Object.values(usersLocalData).filter(user => 
-                new Date(user.endDate) > new Date() && user.status === 'active'
-            ).length;
-
-            const totalUsers = Object.keys(usersLocalData).length;
-            const monthlyRevenue = activeUsers * 30;
-            const totalContent = contentData.movies.length + contentData.series.length + contentData.channels.length;
-
-            document.getElementById('active-users-count').textContent = activeUsers;
-            document.getElementById('total-users').textContent = totalUsers;
-            document.getElementById('monthly-revenue').textContent = `R$ ${monthlyRevenue}`;
-            document.getElementById('total-content').textContent = totalContent;
-        }
-
-        // 🔐 **FUNÇÕES DE AUTENTICAÇÃO ATUALIZADAS**
-
-        function showUserLogin() {
-            document.getElementById('register-overlay').classList.add('hidden');
-            document.getElementById('admin-login-overlay').classList.add('hidden');
-            document.getElementById('login-overlay').classList.remove('hidden');
-        }
-
-        function showRegister() {
-            document.getElementById('login-overlay').classList.add('hidden');
-            document.getElementById('admin-login-overlay').classList.add('hidden');
-            document.getElementById('register-overlay').classList.remove('hidden');
-        }
-
-        function showAdminLogin() {
-            document.getElementById('login-overlay').classList.add('hidden');
-            document.getElementById('register-overlay').classList.add('hidden');
-            document.getElementById('admin-login-overlay').classList.remove('hidden');
-        }
-
-        async function registerUser() {
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-confirm-password').value;
-
-            if (!email || !password || !confirmPassword) {
-                alert('Por favor, preencha todos os campos');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                alert('As senhas não coincidem');
-                return;
-            }
-
-            if (password.length < 6) {
-                alert('A senha deve ter pelo menos 6 caracteres');
-                return;
-            }
-
-            const registerBtn = document.getElementById('register-btn');
-            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cadastrando...';
-            registerBtn.disabled = true;
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .then(async (userCredential) => {
-                    const user = userCredential.user;
                     
-                    usersLocalData[user.uid] = {
-                        email: email,
-                        plan: '7',
-                        startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                        status: 'active',
-                        paymentMethod: 'none',
-                        createdDate: new Date().toISOString()
-                    };
-                    
-                    localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                    
-                    // 🔥 SINCRONIZAR COM FIRESTORE
-                    await syncUsersToFirestore();
-                    
-                    alert('✅ Cadastro realizado com sucesso! Faça login para continuar.');
-                    showUserLogin();
-                })
-                .catch((error) => {
-                    let errorMessage = 'Erro ao cadastrar: ';
-                    switch (error.code) {
-                        case 'auth/email-already-in-use':
-                            errorMessage += 'Este e-mail já está em uso.';
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage += 'E-mail inválido.';
-                            break;
-                        case 'auth/weak-password':
-                            errorMessage += 'Senha muito fraca. Use pelo menos 6 caracteres.';
-                            break;
-                        default:
-                            errorMessage += error.message;
+                    // Se houver alguma relevância, adicionar aos resultados
+                    if (relevance > 0) {
+                        results.push({
+                            ...regulation,
+                            relevance
+                        });
                     }
-                    
-                    alert(errorMessage);
-                })
-                .finally(() => {
-                    registerBtn.innerHTML = 'Cadastrar';
-                    registerBtn.disabled = false;
                 });
+                
+                // Ordenar por relevância
+                results.sort((a, b) => b.relevance - a.relevance);
+                
+                // Exibir resultados
+                displayResults(results, currentSearch);
+                setLoading(false);
+            }, 300);
         }
 
-        function loginUser() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            if (!email || !password) {
-                alert('Por favor, preencha todos os campos');
-                return;
-            }
-
-            const loginBtn = document.getElementById('login-btn');
-            loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-            loginBtn.disabled = true;
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    const user = userCredential.user;
-                    currentUser = user.uid;
-                    
-                    if (!usersLocalData[user.uid]) {
-                        usersLocalData[user.uid] = {
-                            email: email,
-                            plan: '7',
-                            startDate: new Date().toISOString(),
-                            endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                            status: 'active',
-                            paymentMethod: 'none',
-                            createdDate: new Date().toISOString()
-                        };
-                        localStorage.setItem('condessa_users_local', JSON.stringify(usersLocalData));
-                    }
-                    
-                    startApplication();
-                })
-                .catch((error) => {
-                    let errorMessage = 'Erro ao fazer login: ';
-                    switch (error.code) {
-                        case 'auth/user-not-found':
-                            errorMessage += 'Usuário não encontrado.';
-                            break;
-                        case 'auth/wrong-password':
-                            errorMessage += 'Senha incorreta.';
-                            break;
-                        case 'auth/invalid-email':
-                            errorMessage += 'E-mail inválido.';
-                            break;
-                        default:
-                            errorMessage += error.message;
-                    }
-                    
-                    alert(errorMessage);
-                })
-                .finally(() => {
-                    loginBtn.innerHTML = 'Entrar';
-                    loginBtn.disabled = false;
-                });
-        }
-
-        function loginAdmin() {
-            const username = document.getElementById('admin-username').value;
-            const password = document.getElementById('admin-password').value;
-
-            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
-                isAdmin = true;
-                showDashboard();
-            } else {
-                alert('Credenciais administrativas incorretas');
-            }
-        }
-
-        function logoutUser() {
-            auth.signOut().then(() => {
-                currentUser = null;
-                document.getElementById('main-app').classList.add('hidden');
-                document.getElementById('login-overlay').classList.remove('hidden');
-                document.getElementById('login-email').value = '';
-                document.getElementById('login-password').value = '';
-            }).catch((error) => {
-                console.error('Erro ao fazer logout:', error);
-            });
-        }
-
-        function logoutAdmin() {
-            isAdmin = false;
-            document.getElementById('dashboard-overlay').classList.add('hidden');
-            showUserLogin();
-        }
-
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user.uid;
-                if (!document.getElementById('main-app').classList.contains('hidden')) {
-                    startApplication();
-                }
-            } else {
-                currentUser = null;
-            }
-        });
-
-        // 🚀 **FUNÇÃO STARTAPPLICATION ATUALIZADA**
-        async function startApplication() {
-            document.getElementById('login-overlay').classList.add('hidden');
-            document.getElementById('register-overlay').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            
-            // 🔥 CARREGAR DADOS DO FIRESTORE
-            await loadContentFromFirestore();
-            await loadUsersFromFirestore();
-            
-            // 🔥 ATIVAR SINCRONIZAÇÃO EM TEMPO REAL
-            setupRealtimeSync();
-            
-            loadHomeContent();
-            initializeNavigation();
-        }
-
-        function showDashboard() {
-            document.getElementById('admin-login-overlay').classList.add('hidden');
-            document.getElementById('dashboard-overlay').classList.remove('hidden');
-            updateDashboard();
-            loadUserList();
-            loadMoviesList();
-            loadSeriesList();
-            loadChannelsList();
-        }
-
-        // 🎬 **SISTEMA DE NAVEGAÇÃO E CONTEÚDO**
-        let currentTab = 'home';
-        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentSeries = null;
-
-        function initializeNavigation() {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    switchTab(tabId);
-                });
-            });
-
-            document.getElementById('search-btn').addEventListener('click', performSearch);
-            document.getElementById('search-input').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-
-            document.getElementById('close-video-player').addEventListener('click', closeVideoPlayer);
-            
-            const videoElement = document.getElementById('video-element');
-            const playBtn = document.getElementById('play-btn');
-            const pauseBtn = document.getElementById('pause-btn');
-            const fullscreenBtn = document.getElementById('fullscreen-btn');
-
-            videoElement.addEventListener('play', function() {
-                playBtn.style.display = 'none';
-                pauseBtn.style.display = 'block';
-            });
-
-            videoElement.addEventListener('pause', function() {
-                playBtn.style.display = 'block';
-                pauseBtn.style.display = 'none';
-            });
-
-            playBtn.addEventListener('click', function() {
-                if (videoElement.paused) {
-                    videoElement.play().catch(e => {
-                        console.log('Erro ao reproduzir vídeo:', e);
-                    });
-                }
-            });
-
-            pauseBtn.addEventListener('click', function() {
-                if (!videoElement.paused) {
-                    videoElement.pause();
-                }
-            });
-
-            fullscreenBtn.addEventListener('click', function() {
-                const videoPlayer = document.getElementById('video-player');
-                if (!document.fullscreenElement) {
-                    if (videoPlayer.requestFullscreen) {
-                        videoPlayer.requestFullscreen();
-                    } else if (videoPlayer.webkitRequestFullscreen) {
-                        videoPlayer.webkitRequestFullscreen();
-                    } else if (videoPlayer.msRequestFullscreen) {
-                        videoPlayer.msRequestFullscreen();
-                    }
-                } else {
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) {
-                        document.webkitExitFullscreen();
-                    } else if (document.msExitFullscreen) {
-                        document.msExitFullscreen();
-                    }
-                }
-            });
-
-            switchTab('home');
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
-            const activeTab = document.querySelector(`[data-tab="${tabId}"]`);
-            if (activeTab) {
-                activeTab.classList.add('active');
-            }
-
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active-tab');
-                content.style.display = 'none';
-            });
-            
-            const targetTab = document.getElementById(tabId);
-            if (targetTab) {
-                targetTab.classList.add('active-tab');
-                targetTab.style.display = 'block';
-            }
-
-            currentTab = tabId;
-            
-            loadTabContent(tabId);
-        }
-
-        function loadTabContent(tabId) {
-            switch(tabId) {
-                case 'home':
-                    loadHomeContent();
-                    break;
-                case 'movies':
-                    loadAllMovies();
-                    break;
-                case 'series':
-                    loadAllSeries();
-                    break;
-                case 'live':
-                    loadAllChannels();
-                    break;
-                case 'favorites':
-                    loadFavorites();
-                    break;
-            }
-        }
-
-        function loadHomeContent() {
-            loadContentToGrid('movies', 'home-movies', 4);
-            loadContentToGrid('series', 'home-series', 4);
-            loadContentToGrid('channels', 'home-channels', 4);
-        }
-
-        function loadAllMovies() {
-            loadContentToGrid('movies', 'all-movies');
-        }
-
-        function loadAllSeries() {
-            loadContentToGrid('series', 'all-series');
-        }
-
-        function loadAllChannels() {
-            loadContentToGrid('channels', 'all-channels');
-        }
-
-        function loadContentToGrid(contentType, containerId, limit = null) {
-            const container = document.getElementById(containerId);
-            if (!container) {
-                console.error('Container não encontrado:', containerId);
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            const items = contentData[contentType];
-            const itemsToShow = limit ? items.slice(0, limit) : items;
-            
-            if (itemsToShow.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">Nenhum conteúdo disponível</p>';
-                return;
-            }
-            
-            itemsToShow.forEach(item => {
-                const card = createContentCard(item);
-                container.appendChild(card);
-            });
-        }
-
-        function createContentCard(item) {
-            const card = document.createElement('div');
-            card.className = 'content-card';
-            
-            const isFavorite = favorites.includes(item.id);
-            const urlType = checkVideoUrlType(item.videoUrl);
-            
-            let badge = '';
-            if (urlType === 'youtube') {
-                badge = '<span class="youtube-badge">YouTube</span>';
-            } else if (urlType === 'streamtape') {
-                badge = '<span class="streamtape-badge">Streamtape</span>';
-            }
-            
-            let extraInfo = '';
-            if (item.type === 'series') {
-                const totalSeasons = item.seasons ? item.seasons.length : 0;
-                const totalEpisodes = item.seasons ? item.seasons.reduce((total, season) => total + season.episodes.length, 0) : 0;
-                extraInfo = `${totalSeasons} temp • ${totalEpisodes} eps`;
-            }
-            
-            let buttonColor = '#e50914';
-            let buttonText = item.type === 'series' ? 'Escolher Episódio' : 'Assistir';
-            
-            if (urlType === 'youtube') {
-                buttonColor = '#ff0000';
-                buttonText = 'Assistir YouTube';
-            } else if (urlType === 'streamtape') {
-                buttonColor = '#ff6b00';
-                buttonText = 'Assistir Streamtape';
-            }
-            
-            card.innerHTML = `
-                <img src="${item.image}" alt="${item.title}" class="card-image">
-                <div class="card-content">
-                    <div class="card-title">${item.title} ${badge}</div>
-                    <div class="card-info">
-                        <span>${item.genre}</span>
-                        <span>⭐ ${item.rating}</span>
-                    </div>
-                    ${extraInfo ? `<div style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem;">${extraInfo}</div>` : ''}
-                    <div style="margin-top: 10px; display: flex; justify-content: space-between;">
-                        <button class="play-btn" style="background: ${buttonColor}; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">
-                            ${buttonText}
-                        </button>
-                        <button class="fav-btn" style="background: none; border: none; color: ${isFavorite ? '#e50914' : '#b3b3b3'}; cursor: pointer; font-size: 1.2rem;">
-                            <i class="${isFavorite ? 'fas' : 'far'} fa-heart"></i>
-                        </button>
-                    </div>
+        // Função para exibir mensagens
+        function showMessage(message, type = 'info') {
+            resultsContainer.innerHTML = `
+                <div class="no-results">
+                    <div style="font-size: 3rem; margin-bottom: 15px; color: #bdc3c7;">ℹ️</div>
+                    <p style="font-size: 1.1rem; color: #666;">${message}</p>
                 </div>
             `;
-
-            card.querySelector('.play-btn').addEventListener('click', () => {
-                if (item.type === 'series') {
-                    openSeriesModal(item);
-                } else {
-                    playContent(item);
-                }
-            });
-
-            card.querySelector('.fav-btn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleFavorite(item.id, card.querySelector('.fav-btn'));
-            });
-
-            return card;
+            resultsSection.classList.add('active');
+            resultsCount.textContent = '0 resultados encontrados';
         }
 
-        function isYouTubeUrl(url) {
-            if (!url) return false;
-            const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            return youtubeRegex.test(url);
-        }
-
-        function extractYouTubeId(url) {
-            const regex = /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            const match = url.match(regex);
-            return match ? match[1] : null;
-        }
-
-        function openSeriesModal(series) {
-            currentSeries = series;
-            const modal = document.getElementById('series-modal');
-            const title = document.getElementById('series-modal-title');
-            const seasonSelector = document.getElementById('season-selector');
-            const episodesContainer = document.getElementById('episodes-container');
-            
-            title.textContent = series.title;
-            seasonSelector.innerHTML = '';
-            episodesContainer.innerHTML = '';
-            
-            series.seasons.forEach((season, index) => {
-                const seasonBtn = document.createElement('button');
-                seasonBtn.className = 'season-btn';
-                seasonBtn.textContent = `Temp ${season.number}`;
-                if (index === 0) seasonBtn.classList.add('active');
-                
-                seasonBtn.addEventListener('click', () => {
-                    document.querySelectorAll('.season-btn').forEach(btn => btn.classList.remove('active'));
-                    seasonBtn.classList.add('active');
-                    loadEpisodes(season);
-                });
-                
-                seasonSelector.appendChild(seasonBtn);
-            });
-            
-            if (series.seasons.length > 0) {
-                loadEpisodes(series.seasons[0]);
-            }
-            
-            modal.classList.remove('hidden');
-        }
-
-        function closeSeriesModal() {
-            const modal = document.getElementById('series-modal');
-            modal.classList.add('hidden');
-            currentSeries = null;
-        }
-
-        function loadEpisodes(season) {
-            const episodesContainer = document.getElementById('episodes-container');
-            episodesContainer.innerHTML = '';
-            
-            season.episodes.forEach(episode => {
-                const urlType = checkVideoUrlType(episode.videoUrl);
-                let badge = '';
-                if (urlType === 'youtube') {
-                    badge = '<span class="youtube-badge">YouTube</span>';
-                } else if (urlType === 'streamtape') {
-                    badge = '<span class="streamtape-badge">Streamtape</span>';
-                }
-                
-                const episodeCard = document.createElement('div');
-                episodeCard.className = 'episode-card';
-                episodeCard.innerHTML = `
-                    <div style="font-weight: bold;">Ep ${episode.number} ${badge}</div>
-                    <div style="font-size: 0.8rem; margin-top: 0.3rem;">${episode.title}</div>
-                    ${episode.duration ? `<div style="font-size: 0.7rem; color: var(--text-secondary);">${episode.duration} min</div>` : ''}
-                `;
-                
-                episodeCard.addEventListener('click', () => {
-                    playEpisode(episode);
-                });
-                
-                episodesContainer.appendChild(episodeCard);
-            });
-        }
-
-        function playEpisode(episode) {
-            if (!requireSubscription()) {
-                return;
-            }
-
-            const playerTitle = document.getElementById('player-title');
-            const videoElement = document.getElementById('video-element');
-            const youtubeElement = document.getElementById('youtube-element');
-            const playerType = document.getElementById('player-type');
-            const videoPlayer = document.getElementById('video-player');
-
-            playerTitle.textContent = `${currentSeries.title} - ${episode.title}`;
-            
-            videoElement.style.display = 'none';
-            youtubeElement.style.display = 'none';
-            videoElement.pause();
-            videoElement.src = '';
-            youtubeElement.src = '';
-
-            const urlType = checkVideoUrlType(episode.videoUrl);
-            
-            if (urlType === 'youtube') {
-                const videoId = extractYouTubeId(episode.videoUrl);
-                if (videoId) {
-                    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
-                    
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
-                    playerType.textContent = 'YouTube Player';
-                    playerType.style.display = 'block';
-                    
-                    document.querySelector('.player-controls').style.display = 'none';
-                } else {
-                    alert('URL do YouTube inválida');
-                    return;
-                }
-            } else if (urlType === 'streamtape') {
-                const embedUrl = getStreamtapeEmbedUrl(episode.videoUrl);
-                if (embedUrl) {
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
-                    playerType.textContent = 'Streamtape Player';
-                    playerType.style.display = 'block';
-                    
-                    document.querySelector('.player-controls').style.display = 'none';
-                } else {
-                    alert('URL do Streamtape inválida');
-                    return;
-                }
-            } else if (urlType === 'direct') {
-                videoElement.style.display = 'block';
-                videoElement.src = episode.videoUrl;
-                playerType.textContent = 'Player de Vídeo';
-                playerType.style.display = 'block';
-                
-                document.querySelector('.player-controls').style.display = 'flex';
-                
-                videoElement.play().catch(e => {
-                    console.log('Erro ao reproduzir vídeo:', e);
-                    alert('Erro ao carregar o vídeo. Verifique a URL.');
-                });
-            } else {
-                alert('Tipo de URL não suportado: ' + episode.videoUrl);
-                return;
-            }
-            
-            videoPlayer.style.display = 'flex';
-            closeSeriesModal();
-        }
-
-        function toggleFavorite(contentId, button) {
-            const index = favorites.indexOf(contentId);
-            const heartIcon = button.querySelector('i');
-            
-            if (index === -1) {
-                favorites.push(contentId);
-                heartIcon.className = 'fas fa-heart';
-                button.style.color = '#e50914';
-            } else {
-                favorites.splice(index, 1);
-                heartIcon.className = 'far fa-heart';
-                button.style.color = '#b3b3b3';
-            }
-            
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            
-            if (currentTab === 'favorites') {
-                loadFavorites();
-            }
-        }
-
-        function loadFavorites() {
-            const container = document.getElementById('favorites-content');
-            const emptyMsg = document.getElementById('empty-favorites');
-            
-            if (!container) return;
-            
-            container.innerHTML = '';
-            
-            if (favorites.length === 0) {
-                emptyMsg.classList.remove('hidden');
-                return;
-            }
-            
-            emptyMsg.classList.add('hidden');
-            
-            const allItems = getAllContent();
-            const favoriteItems = allItems.filter(item => favorites.includes(item.id));
-            
-            favoriteItems.forEach(item => {
-                const card = createContentCard(item);
-                container.appendChild(card);
-            });
-        }
-
-        function getAllContent() {
-            return [
-                ...contentData.movies,
-                ...contentData.series,
-                ...contentData.channels
-            ];
-        }
-
-        function playContent(item) {
-            if (!requireSubscription()) {
-                return;
-            }
-
-            const playerTitle = document.getElementById('player-title');
-            const videoElement = document.getElementById('video-element');
-            const youtubeElement = document.getElementById('youtube-element');
-            const playerType = document.getElementById('player-type');
-            const videoPlayer = document.getElementById('video-player');
-
-            playerTitle.textContent = item.title;
-            
-            videoElement.style.display = 'none';
-            youtubeElement.style.display = 'none';
-            videoElement.pause();
-            videoElement.src = '';
-            youtubeElement.src = '';
-
-            const urlType = checkVideoUrlType(item.videoUrl);
-            
-            if (urlType === 'youtube') {
-                const videoId = extractYouTubeId(item.videoUrl);
-                if (videoId) {
-                    const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&enablejsapi=1`;
-                    
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
-                    playerType.textContent = 'YouTube Player';
-                    playerType.style.display = 'block';
-                    
-                    document.querySelector('.player-controls').style.display = 'none';
-                } else {
-                    alert('URL do YouTube inválida');
-                    return;
-                }
-            } else if (urlType === 'streamtape') {
-                const embedUrl = getStreamtapeEmbedUrl(item.videoUrl);
-                if (embedUrl) {
-                    youtubeElement.style.display = 'block';
-                    youtubeElement.src = embedUrl;
-                    playerType.textContent = 'Streamtape Player';
-                    playerType.style.display = 'block';
-                    
-                    document.querySelector('.player-controls').style.display = 'none';
-                } else {
-                    alert('URL do Streamtape inválida');
-                    return;
-                }
-            } else if (urlType === 'direct') {
-                videoElement.style.display = 'block';
-                videoElement.src = item.videoUrl;
-                playerType.textContent = 'Player de Vídeo';
-                playerType.style.display = 'block';
-                
-                document.querySelector('.player-controls').style.display = 'flex';
-                
-                videoElement.play().catch(e => {
-                    console.log('Erro ao reproduzir vídeo:', e);
-                    alert('Erro ao carregar o vídeo. Verifique a URL.');
-                });
-            } else {
-                alert('Tipo de URL não suportado: ' + item.videoUrl);
-                return;
-            }
-            
-            videoPlayer.style.display = 'flex';
-        }
-
-        function closeVideoPlayer() {
-            const videoPlayer = document.getElementById('video-player');
-            const videoElement = document.getElementById('video-element');
-            const youtubeElement = document.getElementById('youtube-element');
-            const playerType = document.getElementById('player-type');
-            
-            videoPlayer.style.display = 'none';
-            videoElement.pause();
-            videoElement.currentTime = 0;
-            videoElement.src = '';
-            youtubeElement.src = '';
-            playerType.style.display = 'none';
-            
-            document.querySelector('.player-controls').style.display = 'flex';
-        }
-
-        function requireSubscription() {
-            if (!currentUser) return false;
-            
-            const user = usersLocalData[currentUser];
-            if (!user || new Date(user.endDate) <= new Date() || user.status !== 'active') {
-                showSubscriptionModal();
-                return false;
-            }
-            return true;
-        }
-
-        function showSubscriptionModal() {
-            const subscriptionOverlay = document.getElementById('subscription-overlay');
-            subscriptionOverlay.classList.remove('hidden');
-        }
-
-        function performSearch() {
-            const searchTerm = document.getElementById('search-input').value.trim();
-            
-            if (!searchTerm) {
-                alert('Digite algo para buscar');
-                return;
-            }
-
-            switchTab('search');
-            showSearchResults(searchTerm);
-        }
-
-        function showSearchResults(searchTerm) {
-            const resultsContainer = document.getElementById('search-results');
-            const noResults = document.getElementById('no-results');
-            
-            if (!resultsContainer) return;
-            
+        // Função para exibir os resultados
+        function displayResults(results, query) {
             resultsContainer.innerHTML = '';
             
-            const allContent = getAllContent();
-            const searchResults = allContent.filter(item => 
-                item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.genre.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            
-            if (searchResults.length === 0) {
-                noResults.classList.remove('hidden');
-                return;
+            if (results.length === 0) {
+                showMessage(`Nenhum resultado encontrado para "<strong>${query}</strong>". Tente usar termos diferentes ou mais específicos.`);
+            } else {
+                resultsCount.textContent = `${results.length} resultado(s) encontrado(s) para "${query}"`;
+                
+                results.forEach(result => {
+                    const resultElement = document.createElement('div');
+                    resultElement.className = 'result-item';
+                    
+                    const highlightedTitle = highlightText(result.title, query);
+                    const highlightedContent = highlightText(result.content, query);
+                    const highlightedArticles = highlightText(result.articles, query);
+                    
+                    resultElement.innerHTML = `
+                        <div class="result-header">
+                            <div class="result-title">${highlightedTitle}</div>
+                            <div class="result-source">${result.source}</div>
+                        </div>
+                        <div class="result-content">${highlightedContent}</div>
+                        <div class="result-articles">📖 ${highlightedArticles}</div>
+                    `;
+                    
+                    resultsContainer.appendChild(resultElement);
+                });
+                
+                resultsSection.classList.add('active');
+                
+                // Scroll suave para os resultados
+                resultsSection.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
             }
-            
-            noResults.classList.add('hidden');
-            
-            searchResults.forEach(item => {
-                const card = createContentCard(item);
-                resultsContainer.appendChild(card);
-            });
         }
 
-        function clearSearch() {
-            switchTab('home');
-            document.getElementById('search-input').value = '';
-        }
-
-        // 📱 **INICIALIZAÇÃO**
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('login-btn').addEventListener('click', loginUser);
-            document.getElementById('register-btn').addEventListener('click', registerUser);
-            document.getElementById('admin-login-btn').addEventListener('click', loginAdmin);
-
-            document.getElementById('login-password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') loginUser();
-            });
-            
-            document.getElementById('register-confirm-password').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') registerUser();
-            });
-
-            showUserLogin();
+        // Event Listeners
+        searchBtn.addEventListener('click', () => {
+            performSearch(searchInput.value);
         });
 
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch(searchInput.value);
+            }
+        });
+
+        // Busca em tempo real com debounce
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            if (e.target.value.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    performSearch(e.target.value);
+                }, 500);
+            }
+        });
+
+        exampleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const query = btn.getAttribute('data-query');
+                searchInput.value = query;
+                searchInput.focus();
+                performSearch(query);
+            });
+        });
+
+        clearResultsBtn.addEventListener('click', () => {
+            resultsSection.classList.remove('active');
+            searchInput.value = '';
+            searchInput.focus();
+            currentSearch = '';
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            searchInput.focus();
+            
+            // Mostrar mensagem de boas-vindas
+            showMessage('Digite acima o que você procura nos regulamentos. Use exemplos rápidos ou descreva sua situação.');
+        });
     </script>
 </body>
 </html>
