@@ -1,221 +1,155 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Snake Game Melhorado</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Endless Runner</title>
 <style>
-body{
-    margin:0;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    background:#111;
-    font-family:Arial;
-    color:white;
-    flex-direction:column;
-}
-
-#gameContainer{
-    width:60vw;
-    max-width:600px;
-    text-align:center;
-}
-
-canvas{
-    background:black;
-    width:100%;
-    display:none;
-    border:3px solid #00ff88;
-}
-
-button{
-    padding:10px 20px;
-    font-size:18px;
-    cursor:pointer;
-    border:none;
-    border-radius:6px;
-    background:#00ff88;
-    font-weight:bold;
-    margin:5px;
-}
-
-#gameOver{
-    display:none;
-    font-size:28px;
-    margin-bottom:10px;
-    color:red;
-}
-
-#scoreBoard{
-    margin:10px 0;
-}
-
-.controls{
-    display:none;
-    margin-top:10px;
-}
-
-.controls button{
-    width:60px;
-    height:60px;
-    font-size:20px;
-}
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #111;
+        font-family: Arial, sans-serif;
+        touch-action: manipulation;
+    }
+    canvas {
+        display: block;
+        background: linear-gradient(#87CEEB, #e0f7ff);
+    }
 </style>
 </head>
 <body>
 
-<div id="gameContainer">
-    <div id="gameOver">GAME OVER</div>
-    <div id="scoreBoard">
-        Pontuação: <span id="score">0</span> |
-        Recorde: <span id="highScore">0</span>
-    </div>
-    <button id="startBtn">Iniciar</button>
-    <canvas id="gameCanvas" width="600" height="600"></canvas>
-
-    <div class="controls">
-        <div>
-            <button onclick="setDirection('UP')">⬆</button>
-        </div>
-        <div>
-            <button onclick="setDirection('LEFT')">⬅</button>
-            <button onclick="setDirection('DOWN')">⬇</button>
-            <button onclick="setDirection('RIGHT')">➡</button>
-        </div>
-    </div>
-</div>
+<canvas id="game"></canvas>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
+const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const startBtn = document.getElementById("startBtn");
-const gameOverText = document.getElementById("gameOver");
-const scoreText = document.getElementById("score");
-const highScoreText = document.getElementById("highScore");
-const controls = document.querySelector(".controls");
 
-const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-const gameOverSound = new Audio("https://actions.google.com/sounds/v1/cartoon/boing.ogg");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
-const box = 20;
-let snake, direction, food, game;
-let speed = 120;
+let gravity = 0.8;
+let gameSpeed = 6;
 let score = 0;
-let highScore = localStorage.getItem("snakeHighScore") || 0;
-highScoreText.innerText = highScore;
+let gameOver = false;
 
-function initGame(){
-    snake = [{x: 10*box, y: 10*box}];
-    direction = null;
-    speed = 120;
-    score = 0;
-    scoreText.innerText = score;
-    food = randomFood();
+const player = {
+    x: 100,
+    y: canvas.height - 150,
+    width: 50,
+    height: 50,
+    dy: 0,
+    jumping: false
+};
+
+let obstacles = [];
+let obstacleTimer = 0;
+
+function spawnObstacle() {
+    const height = 40 + Math.random() * 60;
+    obstacles.push({
+        x: canvas.width,
+        y: canvas.height - height - 100,
+        width: 40,
+        height: height
+    });
 }
 
-function randomFood(){
-    return {
-        x: Math.floor(Math.random()*30)*box,
-        y: Math.floor(Math.random()*30)*box
-    };
+function resetGame() {
+    obstacles = [];
+    score = 0;
+    gameSpeed = 6;
+    gameOver = false;
+    player.y = canvas.height - 150;
+}
+
+function update() {
+    if (gameOver) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // chão
+    ctx.fillStyle = "#444";
+    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+    // player
+    player.dy += gravity;
+    player.y += player.dy;
+
+    if (player.y > canvas.height - 150) {
+        player.y = canvas.height - 150;
+        player.dy = 0;
+        player.jumping = false;
+    }
+
+    ctx.fillStyle = "#ff4757";
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // obstáculos
+    obstacleTimer++;
+    if (obstacleTimer > 90 - gameSpeed * 3) {
+        spawnObstacle();
+        obstacleTimer = 0;
+    }
+
+    obstacles.forEach((obs, index) => {
+        obs.x -= gameSpeed;
+        ctx.fillStyle = "#2f3542";
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+
+        // colisão
+        if (
+            player.x < obs.x + obs.width &&
+            player.x + player.width > obs.x &&
+            player.y < obs.y + obs.height &&
+            player.y + player.height > obs.y
+        ) {
+            gameOver = true;
+        }
+
+        if (obs.x + obs.width < 0) {
+            obstacles.splice(index, 1);
+            score++;
+        }
+    });
+
+    // aumentar dificuldade
+    gameSpeed += 0.002;
+
+    // score
+    ctx.fillStyle = "#000";
+    ctx.font = "30px Arial";
+    ctx.fillText("Score: " + score, 20, 40);
+
+    if (gameOver) {
+        ctx.fillStyle = "#000";
+        ctx.font = "50px Arial";
+        ctx.fillText("Game Over", canvas.width / 2 - 140, canvas.height / 2);
+        ctx.font = "25px Arial";
+        ctx.fillText("Toque para reiniciar", canvas.width / 2 - 120, canvas.height / 2 + 40);
+    }
+
+    requestAnimationFrame(update);
+}
+
+function jump() {
+    if (!player.jumping && !gameOver) {
+        player.dy = -18;
+        player.jumping = true;
+    } else if (gameOver) {
+        resetGame();
+    }
 }
 
 document.addEventListener("keydown", e => {
-    if(e.key === "ArrowLeft") setDirection("LEFT");
-    if(e.key === "ArrowUp") setDirection("UP");
-    if(e.key === "ArrowRight") setDirection("RIGHT");
-    if(e.key === "ArrowDown") setDirection("DOWN");
+    if (e.code === "Space") jump();
 });
 
-function setDirection(newDir){
-    if(newDir === "LEFT" && direction !== "RIGHT") direction = "LEFT";
-    if(newDir === "UP" && direction !== "DOWN") direction = "UP";
-    if(newDir === "RIGHT" && direction !== "LEFT") direction = "RIGHT";
-    if(newDir === "DOWN" && direction !== "UP") direction = "DOWN";
-}
+canvas.addEventListener("touchstart", jump);
+canvas.addEventListener("mousedown", jump);
 
-function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    snake.forEach((part,i)=>{
-        ctx.fillStyle = i===0 ? "#00ff88" : "#00aa55";
-        ctx.fillRect(part.x, part.y, box, box);
-    });
-
-    ctx.fillStyle = "red";
-    ctx.fillRect(food.x, food.y, box, box);
-
-    let headX = snake[0].x;
-    let headY = snake[0].y;
-
-    if(direction === "LEFT") headX -= box;
-    if(direction === "UP") headY -= box;
-    if(direction === "RIGHT") headX += box;
-    if(direction === "DOWN") headY += box;
-
-    if(headX === food.x && headY === food.y){
-        score++;
-        scoreText.innerText = score;
-        eatSound.play();
-        food = randomFood();
-
-        if(score % 5 === 0 && speed > 50){
-            speed -= 10;
-            clearInterval(game);
-            game = setInterval(draw, speed);
-        }
-    } else {
-        snake.pop();
-    }
-
-    let newHead = {x: headX, y: headY};
-
-    if(headX < 0 || headY < 0 || 
-       headX >= canvas.width || 
-       headY >= canvas.height || 
-       collision(newHead, snake)){
-        endGame();
-        return;
-    }
-
-    snake.unshift(newHead);
-}
-
-function collision(head,array){
-    return array.some(part => part.x===head.x && part.y===head.y);
-}
-
-function startGame(){
-    startBtn.style.display = "none";
-    gameOverText.style.display = "none";
-    canvas.style.display = "block";
-    controls.style.display = "block";
-
-    initGame();
-    clearInterval(game);
-    game = setInterval(draw, speed);
-}
-
-function endGame(){
-    clearInterval(game);
-    gameOverSound.play();
-
-    if(score > highScore){
-        highScore = score;
-        localStorage.setItem("snakeHighScore", highScore);
-        highScoreText.innerText = highScore;
-    }
-
-    canvas.style.display = "none";
-    controls.style.display = "none";
-    gameOverText.style.display = "block";
-    startBtn.style.display = "inline-block";
-}
-
-startBtn.addEventListener("click", startGame);
+update();
 </script>
 
 </body>
