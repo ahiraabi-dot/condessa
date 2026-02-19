@@ -1,155 +1,218 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Endless Runner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cardápio Digital</title>
+
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background: #111;
-        font-family: Arial, sans-serif;
-        touch-action: manipulation;
-    }
-    canvas {
-        display: block;
-        background: linear-gradient(#87CEEB, #e0f7ff);
-    }
+* { box-sizing: border-box; }
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f5f5f5;
+}
+header {
+  background: #ff7a00;
+  color: #fff;
+  padding: 15px;
+  text-align: center;
+}
+nav button {
+  margin: 5px;
+  padding: 10px;
+  border: none;
+  background: #fff;
+  color: #ff7a00;
+  font-weight: bold;
+  border-radius: 5px;
+}
+section {
+  display: none;
+  padding: 15px;
+}
+section.active { display: block; }
+.card {
+  background: #fff;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+input, textarea, select, button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+button {
+  background: #ff7a00;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+}
+.produto {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.produto button { width: 35px; }
+
+/* ===== IMPRESSÃO TÉRMICA ===== */
+@media print {
+  body * { visibility: hidden; }
+  #printArea, #printArea * {
+    visibility: visible;
+  }
+  #printArea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 58mm; /* troca para 80mm se quiser */
+    font-size: 12px;
+  }
+}
 </style>
 </head>
+
 <body>
 
-<canvas id="game"></canvas>
+<header>
+  <h1>Cardápio Digital</h1>
+  <nav>
+    <button onclick="show('publico')">Cardápio</button>
+    <button onclick="show('admin')">Admin</button>
+  </nav>
+</header>
+
+<section id="publico" class="active">
+  <div id="lista"></div>
+  <textarea id="obs" placeholder="Observações"></textarea>
+  <p id="total">Total: R$ 0,00</p>
+  <button onclick="finalizar()">Finalizar Pedido</button>
+</section>
+
+<section id="admin">
+  <div class="card">
+    <h3>Categoria</h3>
+    <input id="catNome">
+    <button onclick="addCategoria()">Adicionar</button>
+  </div>
+
+  <div class="card">
+    <h3>Produto</h3>
+    <input id="pNome" placeholder="Nome">
+    <input id="pPreco" type="number" placeholder="Preço">
+    <select id="pCategoria"></select>
+    <textarea id="pDesc" placeholder="Descrição"></textarea>
+    <button onclick="addProduto()">Adicionar Produto</button>
+  </div>
+
+  <div class="card">
+    <h3>QR Code</h3>
+    <img id="qr" width="200">
+  </div>
+</section>
+
+<!-- IMPRESSÃO -->
+<div id="printArea" style="display:none">
+  <center>
+    <img src="https://via.placeholder.com/120x60?text=LOGO"><br>
+    <strong>Pedido Nº <span id="printNumero"></span></strong><br>
+    <span id="printData"></span>
+  </center>
+  <hr>
+  <div id="printItens"></div>
+  <hr>
+  <p id="printObs"></p>
+  <strong id="printTotal"></strong>
+</div>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+let categorias = JSON.parse(localStorage.getItem("categorias")) || [];
+let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
+let carrinho = {};
+let pedidoNumero = Number(localStorage.getItem("pedidoNumero")) || 1;
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-let gravity = 0.8;
-let gameSpeed = 6;
-let score = 0;
-let gameOver = false;
-
-const player = {
-    x: 100,
-    y: canvas.height - 150,
-    width: 50,
-    height: 50,
-    dy: 0,
-    jumping: false
-};
-
-let obstacles = [];
-let obstacleTimer = 0;
-
-function spawnObstacle() {
-    const height = 40 + Math.random() * 60;
-    obstacles.push({
-        x: canvas.width,
-        y: canvas.height - height - 100,
-        width: 40,
-        height: height
-    });
+function show(id){
+  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
 }
 
-function resetGame() {
-    obstacles = [];
-    score = 0;
-    gameSpeed = 6;
-    gameOver = false;
-    player.y = canvas.height - 150;
+function salvar(){
+  localStorage.setItem("categorias", JSON.stringify(categorias));
+  localStorage.setItem("produtos", JSON.stringify(produtos));
+  carregar();
 }
 
-function update() {
-    if (gameOver) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // chão
-    ctx.fillStyle = "#444";
-    ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
-
-    // player
-    player.dy += gravity;
-    player.y += player.dy;
-
-    if (player.y > canvas.height - 150) {
-        player.y = canvas.height - 150;
-        player.dy = 0;
-        player.jumping = false;
-    }
-
-    ctx.fillStyle = "#ff4757";
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // obstáculos
-    obstacleTimer++;
-    if (obstacleTimer > 90 - gameSpeed * 3) {
-        spawnObstacle();
-        obstacleTimer = 0;
-    }
-
-    obstacles.forEach((obs, index) => {
-        obs.x -= gameSpeed;
-        ctx.fillStyle = "#2f3542";
-        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
-
-        // colisão
-        if (
-            player.x < obs.x + obs.width &&
-            player.x + player.width > obs.x &&
-            player.y < obs.y + obs.height &&
-            player.y + player.height > obs.y
-        ) {
-            gameOver = true;
-        }
-
-        if (obs.x + obs.width < 0) {
-            obstacles.splice(index, 1);
-            score++;
-        }
-    });
-
-    // aumentar dificuldade
-    gameSpeed += 0.002;
-
-    // score
-    ctx.fillStyle = "#000";
-    ctx.font = "30px Arial";
-    ctx.fillText("Score: " + score, 20, 40);
-
-    if (gameOver) {
-        ctx.fillStyle = "#000";
-        ctx.font = "50px Arial";
-        ctx.fillText("Game Over", canvas.width / 2 - 140, canvas.height / 2);
-        ctx.font = "25px Arial";
-        ctx.fillText("Toque para reiniciar", canvas.width / 2 - 120, canvas.height / 2 + 40);
-    }
-
-    requestAnimationFrame(update);
+function addCategoria(){
+  if(catNome.value){
+    categorias.push(catNome.value);
+    catNome.value="";
+    salvar();
+  }
 }
 
-function jump() {
-    if (!player.jumping && !gameOver) {
-        player.dy = -18;
-        player.jumping = true;
-    } else if (gameOver) {
-        resetGame();
-    }
+function addProduto(){
+  produtos.push({
+    nome:pNome.value,
+    preco:Number(pPreco.value),
+    categoria:pCategoria.value,
+    desc:pDesc.value,
+    ativo:true
+  });
+  pNome.value=pPreco.value=pDesc.value="";
+  salvar();
 }
 
-document.addEventListener("keydown", e => {
-    if (e.code === "Space") jump();
-});
+function carregar(){
+  pCategoria.innerHTML="";
+  categorias.forEach(c=>pCategoria.innerHTML+=`<option>${c}</option>`);
 
-canvas.addEventListener("touchstart", jump);
-canvas.addEventListener("mousedown", jump);
+  let html="", total=0;
+  produtos.forEach((p,i)=>{
+    let q=carrinho[i]||0;
+    total+=q*p.preco;
+    html+=`
+    <div class="card">
+      <strong>${p.nome}</strong><br>${p.desc}<br>R$ ${p.preco.toFixed(2)}
+      <div class="produto">
+        <button onclick="menos(${i})">-</button>${q}
+        <button onclick="mais(${i})">+</button>
+      </div>
+    </div>`;
+  });
 
-update();
+  lista.innerHTML=html;
+  total.innerText="Total: R$ "+total.toFixed(2);
+  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+location.href;
+}
+
+function mais(i){ carrinho[i]=(carrinho[i]||0)+1; carregar(); }
+function menos(i){ if(carrinho[i]) carrinho[i]--; carregar(); }
+
+function finalizar(){
+  let itens="", total=0;
+  produtos.forEach((p,i)=>{
+    if(carrinho[i]){
+      let sub=carrinho[i]*p.preco;
+      total+=sub;
+      itens+=`<p>${p.nome} x${carrinho[i]} - R$ ${sub.toFixed(2)}</p>`;
+    }
+  });
+
+  let agora=new Date();
+  document.getElementById("printNumero").innerText=pedidoNumero;
+  document.getElementById("printData").innerText=agora.toLocaleString("pt-BR");
+  document.getElementById("printItens").innerHTML=itens;
+  document.getElementById("printObs").innerText="Obs: "+(obs.value||"Nenhuma");
+  document.getElementById("printTotal").innerText="Total: R$ "+total.toFixed(2);
+
+  localStorage.setItem("pedidoNumero", ++pedidoNumero);
+  window.print();
+
+  window.open("https://wa.me/55SEUNUMERO?text=Pedido%20Nº%20"+(pedidoNumero-1));
+}
+
+carregar();
 </script>
 
 </body>
