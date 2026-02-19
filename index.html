@@ -6,69 +6,179 @@
 <title>Cardápio Digital</title>
 
 <style>
-* { box-sizing: border-box; }
-body {
-  font-family: Arial, sans-serif;
-  margin: 0;
-  background: #f5f5f5;
+:root{
+  --primary:#ff7a00;
+  --bg:#f6f6f6;
+  --text:#222;
+  --muted:#777;
+  --card:#fff;
 }
-header {
-  background: #ff7a00;
-  color: #fff;
-  padding: 15px;
-  text-align: center;
-}
-nav button {
-  margin: 5px;
-  padding: 10px;
-  border: none;
-  background: #fff;
-  color: #ff7a00;
-  font-weight: bold;
-  border-radius: 5px;
-}
-section {
-  display: none;
-  padding: 15px;
-}
-section.active { display: block; }
-.card {
-  background: #fff;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 8px;
-}
-input, textarea, select, button {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-}
-button {
-  background: #ff7a00;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-}
-.produto {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.produto button { width: 35px; }
 
-/* ===== IMPRESSÃO TÉRMICA ===== */
-@media print {
-  body * { visibility: hidden; }
-  #printArea, #printArea * {
-    visibility: visible;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* TOPO */
+header{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:#fff;
+  border-bottom:1px solid #e5e5e5;
+}
+.header-inner{
+  max-width:1200px;
+  margin:auto;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 16px;
+}
+.logo{
+  font-weight:700;
+  font-size:20px;
+  color:var(--primary);
+}
+.header-actions button{
+  margin-left:8px;
+}
+
+/* BOTÕES */
+button{
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  padding:10px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-weight:600;
+}
+button.outline{
+  background:#fff;
+  color:var(--primary);
+  border:1px solid var(--primary);
+}
+
+/* CONTAINER */
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:20px 16px;
+}
+
+/* LANDING */
+.hero{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:30px;
+  align-items:center;
+}
+.hero h1{
+  font-size:38px;
+  margin:0;
+}
+.hero p{
+  color:var(--muted);
+  font-size:18px;
+  margin:16px 0;
+}
+.hero img{
+  width:100%;
+  border-radius:12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.15);
+}
+
+/* ABAS (PAINEL) */
+.tabs{
+  display:flex;
+  gap:10px;
+  border-bottom:1px solid #ddd;
+  margin-bottom:20px;
+}
+.tabs button{
+  background:none;
+  color:var(--muted);
+  border:none;
+  padding:10px 12px;
+  border-bottom:3px solid transparent;
+}
+.tabs button.active{
+  color:var(--primary);
+  border-color:var(--primary);
+  font-weight:700;
+}
+
+/* CARDS */
+.card{
+  background:var(--card);
+  border-radius:10px;
+  padding:14px;
+  margin-bottom:12px;
+}
+
+/* CARDÁPIO */
+.category-title{
+  font-size:20px;
+  margin:24px 0 10px;
+}
+.product{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+.product-info{
+  flex:1;
+}
+.product-info p{
+  margin:4px 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.product-actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* CARRINHO FIXO */
+.cart{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#fff;
+  border-top:1px solid #ddd;
+  padding:10px 16px;
+}
+.cart-inner{
+  max-width:1200px;
+  margin:auto;
+}
+.cart textarea{
+  width:100%;
+  margin-bottom:6px;
+}
+
+/* IMPRESSÃO */
+@media print{
+  body *{visibility:hidden}
+  #printArea,#printArea *{visibility:visible}
+  #printArea{
+    position:absolute;
+    top:0;
+    left:0;
+    width:58mm;
+    font-size:12px;
   }
-  #printArea {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 58mm; /* troca para 80mm se quiser */
-    font-size: 12px;
-  }
+}
+
+/* RESPONSIVO */
+@media(max-width:900px){
+  .hero{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -76,48 +186,86 @@ button {
 <body>
 
 <header>
-  <h1>Cardápio Digital</h1>
-  <nav>
-    <button onclick="show('publico')">Cardápio</button>
-    <button onclick="show('admin')">Admin</button>
-  </nav>
+  <div class="header-inner">
+    <div class="logo">SeuCardápio</div>
+    <div class="header-actions">
+      <button class="outline" onclick="show('home')">Início</button>
+      <button onclick="show('admin')">Painel</button>
+    </div>
+  </div>
 </header>
 
-<section id="publico" class="active">
-  <div id="lista"></div>
-  <textarea id="obs" placeholder="Observações"></textarea>
-  <p id="total">Total: R$ 0,00</p>
-  <button onclick="finalizar()">Finalizar Pedido</button>
-</section>
-
-<section id="admin">
-  <div class="card">
-    <h3>Categoria</h3>
-    <input id="catNome">
-    <button onclick="addCategoria()">Adicionar</button>
-  </div>
-
-  <div class="card">
-    <h3>Produto</h3>
-    <input id="pNome" placeholder="Nome">
-    <input id="pPreco" type="number" placeholder="Preço">
-    <select id="pCategoria"></select>
-    <textarea id="pDesc" placeholder="Descrição"></textarea>
-    <button onclick="addProduto()">Adicionar Produto</button>
-  </div>
-
-  <div class="card">
-    <h3>QR Code</h3>
-    <img id="qr" width="200">
+<!-- LANDING -->
+<section id="home" class="container">
+  <div class="hero">
+    <div>
+      <h1>Cardápio digital simples e rápido</h1>
+      <p>Pedidos via WhatsApp, impressão automática e QR Code. Funciona no celular e no computador.</p>
+      <button onclick="show('menu')">Ver cardápio</button>
+    </div>
+    <img src="https://via.placeholder.com/500x600?text=Mockup">
   </div>
 </section>
+
+<!-- CARDÁPIO -->
+<section id="menu" class="container" style="display:none">
+  <div id="menuList"></div>
+</section>
+
+<!-- PAINEL -->
+<section id="admin" class="container" style="display:none">
+
+  <div class="tabs">
+    <button class="active" onclick="tab('geral',this)">Geral</button>
+    <button onclick="tab('categorias',this)">Categorias</button>
+    <button onclick="tab('produtos',this)">Produtos</button>
+    <button onclick="tab('qrcode',this)">QR Code</button>
+  </div>
+
+  <div id="geral">
+    <div class="card">Configure seu cardápio e comece a vender.</div>
+  </div>
+
+  <div id="categorias" style="display:none">
+    <div class="card">
+      <input id="catNome" placeholder="Nome da categoria">
+      <button onclick="addCategoria()">Adicionar</button>
+    </div>
+  </div>
+
+  <div id="produtos" style="display:none">
+    <div class="card">
+      <input id="pNome" placeholder="Nome do produto">
+      <input id="pPreco" type="number" placeholder="Preço">
+      <select id="pCategoria"></select>
+      <textarea id="pDesc" placeholder="Descrição"></textarea>
+      <button onclick="addProduto()">Adicionar produto</button>
+    </div>
+  </div>
+
+  <div id="qrcode" style="display:none">
+    <div class="card">
+      <img id="qr" width="200">
+    </div>
+  </div>
+
+</section>
+
+<!-- CARRINHO -->
+<div class="cart">
+  <div class="cart-inner">
+    <textarea id="obs" placeholder="Observações do pedido"></textarea>
+    <strong id="total">Total: R$ 0,00</strong>
+    <button style="width:100%;margin-top:6px" onclick="finalizar()">Finalizar pedido</button>
+  </div>
+</div>
 
 <!-- IMPRESSÃO -->
 <div id="printArea" style="display:none">
   <center>
     <img src="https://via.placeholder.com/120x60?text=LOGO"><br>
-    <strong>Pedido Nº <span id="printNumero"></span></strong><br>
-    <span id="printData"></span>
+    <strong>Pedido Nº <span id="num"></span></strong><br>
+    <span id="data"></span>
   </center>
   <hr>
   <div id="printItens"></div>
@@ -127,92 +275,91 @@ button {
 </div>
 
 <script>
-let categorias = JSON.parse(localStorage.getItem("categorias")) || [];
-let produtos = JSON.parse(localStorage.getItem("produtos")) || [];
-let carrinho = {};
-let pedidoNumero = Number(localStorage.getItem("pedidoNumero")) || 1;
+let categorias=JSON.parse(localStorage.getItem("categorias"))||[]
+let produtos=JSON.parse(localStorage.getItem("produtos"))||[]
+let carrinho={}
+let pedido=Number(localStorage.getItem("pedido"))||1
 
 function show(id){
-  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  document.querySelectorAll("section").forEach(s=>s.style.display="none")
+  document.getElementById(id).style.display="block"
+}
+
+function tab(id,btn){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"))
+  btn.classList.add("active")
+  ["geral","categorias","produtos","qrcode"].forEach(t=>{
+    document.getElementById(t).style.display=(t===id?"block":"none")
+  })
 }
 
 function salvar(){
-  localStorage.setItem("categorias", JSON.stringify(categorias));
-  localStorage.setItem("produtos", JSON.stringify(produtos));
-  carregar();
+  localStorage.setItem("categorias",JSON.stringify(categorias))
+  localStorage.setItem("produtos",JSON.stringify(produtos))
+  render()
 }
 
 function addCategoria(){
-  if(catNome.value){
-    categorias.push(catNome.value);
-    catNome.value="";
-    salvar();
-  }
+  if(catNome.value){categorias.push(catNome.value);catNome.value="";salvar()}
 }
 
 function addProduto(){
-  produtos.push({
-    nome:pNome.value,
-    preco:Number(pPreco.value),
-    categoria:pCategoria.value,
-    desc:pDesc.value,
-    ativo:true
-  });
-  pNome.value=pPreco.value=pDesc.value="";
-  salvar();
+  produtos.push({nome:pNome.value,preco:+pPreco.value,cat:pCategoria.value,desc:pDesc.value})
+  pNome.value=pPreco.value=pDesc.value=""
+  salvar()
 }
 
-function carregar(){
-  pCategoria.innerHTML="";
-  categorias.forEach(c=>pCategoria.innerHTML+=`<option>${c}</option>`);
+function render(){
+  pCategoria.innerHTML=""
+  categorias.forEach(c=>pCategoria.innerHTML+=`<option>${c}</option>`)
 
-  let html="", total=0;
-  produtos.forEach((p,i)=>{
-    let q=carrinho[i]||0;
-    total+=q*p.preco;
-    html+=`
-    <div class="card">
-      <strong>${p.nome}</strong><br>${p.desc}<br>R$ ${p.preco.toFixed(2)}
-      <div class="produto">
-        <button onclick="menos(${i})">-</button>${q}
-        <button onclick="mais(${i})">+</button>
-      </div>
-    </div>`;
-  });
-
-  lista.innerHTML=html;
-  total.innerText="Total: R$ "+total.toFixed(2);
-  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+location.href;
+  let html=""
+  categorias.forEach(cat=>{
+    html+=`<div class="category-title">${cat}</div>`
+    produtos.filter(p=>p.cat===cat).forEach((p,i)=>{
+      let q=carrinho[i]||0
+      html+=`
+      <div class="card product">
+        <div class="product-info">
+          <strong>${p.nome}</strong>
+          <p>${p.desc}</p>
+          <strong>R$ ${p.preco.toFixed(2)}</strong>
+        </div>
+        <div class="product-actions">
+          <button onclick="menos(${i})">-</button>${q}
+          <button onclick="mais(${i})">+</button>
+        </div>
+      </div>`
+    })
+  })
+  menuList.innerHTML=html
+  qr.src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data="+location.href
+  total.innerText="Total: R$ "+Object.keys(carrinho).reduce((s,i)=>s+carrinho[i]*produtos[i].preco,0).toFixed(2)
 }
 
-function mais(i){ carrinho[i]=(carrinho[i]||0)+1; carregar(); }
-function menos(i){ if(carrinho[i]) carrinho[i]--; carregar(); }
+function mais(i){carrinho[i]=(carrinho[i]||0)+1;render()}
+function menos(i){if(carrinho[i])carrinho[i]--;render()}
 
 function finalizar(){
-  let itens="", total=0;
+  let itens="",total=0
   produtos.forEach((p,i)=>{
     if(carrinho[i]){
-      let sub=carrinho[i]*p.preco;
-      total+=sub;
-      itens+=`<p>${p.nome} x${carrinho[i]} - R$ ${sub.toFixed(2)}</p>`;
+      let sub=carrinho[i]*p.preco
+      total+=sub
+      itens+=`<p>${p.nome} x${carrinho[i]} - R$ ${sub.toFixed(2)}</p>`
     }
-  });
-
-  let agora=new Date();
-  document.getElementById("printNumero").innerText=pedidoNumero;
-  document.getElementById("printData").innerText=agora.toLocaleString("pt-BR");
-  document.getElementById("printItens").innerHTML=itens;
-  document.getElementById("printObs").innerText="Obs: "+(obs.value||"Nenhuma");
-  document.getElementById("printTotal").innerText="Total: R$ "+total.toFixed(2);
-
-  localStorage.setItem("pedidoNumero", ++pedidoNumero);
-  window.print();
-
-  window.open("https://wa.me/55SEUNUMERO?text=Pedido%20Nº%20"+(pedidoNumero-1));
+  })
+  num.innerText=pedido
+  data.innerText=new Date().toLocaleString("pt-BR")
+  printItens.innerHTML=itens
+  printObs.innerText="Obs: "+(obs.value||"Nenhuma")
+  printTotal.innerText="Total: R$ "+total.toFixed(2)
+  localStorage.setItem("pedido",++pedido)
+  window.print()
+  window.open("https://wa.me/55SEUNUMERO?text=Pedido%20"+(pedido-1))
 }
 
-carregar();
+render()
 </script>
 
 </body>
