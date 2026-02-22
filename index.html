@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MeuCardápio · Cardápio Digital</title>
   <style>
-    /* (mesmo estilo anterior - mantive igual para não poluir) */
     * {
       margin: 0;
       padding: 0;
@@ -111,17 +110,19 @@
     .modal h3 {
       margin-bottom: 1rem;
     }
-    .modal input {
+    .modal input, .modal select, .modal textarea {
       width: 100%;
       padding: 1rem;
       border: 1px solid var(--border-light);
       border-radius: 40px;
-      margin: 1rem 0;
+      margin: 0.5rem 0;
+      background: white;
     }
     .modal-actions {
       display: flex;
       gap: 0.8rem;
       justify-content: flex-end;
+      margin-top: 1rem;
     }
 
     .admin-tabs {
@@ -329,6 +330,21 @@
   </div>
 </div>
 
+<!-- MODAL DE EDIÇÃO DE PRODUTO -->
+<div id="modalEditarProduto" class="modal-overlay">
+  <div class="modal">
+    <h3>✏️ Editar produto</h3>
+    <input type="text" id="editNome" placeholder="Nome">
+    <input type="number" id="editPreco" placeholder="Preço R$" step="0.01">
+    <select id="editCategoria"></select>
+    <textarea id="editDesc" placeholder="Descrição curta" rows="2"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="fecharModalEditar()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicaoProduto()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <main class="main-container">
   <section id="menu" class="active-section">
     <h2 style="font-size:2rem; margin-bottom:1rem;">🍽️ Nosso Cardápio</h2>
@@ -399,24 +415,18 @@
 
 <script>
   // ===== PROTEÇÃO REAL =====
-  // A senha NÃO está no código! Está em um hash (não dá para reverter)
-  // A senha real é "admin123" - mas você nem vê ela aqui!
   const SENHA_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // hash de "admin"
   
-  // Variável de controle de sessão
   let adminLogado = false;
+  let produtoEditandoIndex = null;
 
-  // Função que verifica a senha de forma segura
   async function verificarSenha() {
     const senhaDigitada = document.getElementById('senhaInput').value;
-    
-    // Simula uma verificação no servidor (aqui fazemos local, mas de forma segura)
-    // Em produção, isso seria uma requisição para seu backend
     const hashDigitado = await sha256(senhaDigitada);
     
     if (hashDigitado === SENHA_HASH) {
       adminLogado = true;
-      sessionStorage.setItem('adminAuth', 'true'); // guarda na sessão
+      sessionStorage.setItem('adminAuth', 'true');
       fecharModal();
       document.querySelectorAll('section').forEach(s => s.classList.remove('active-section'));
       document.getElementById('admin').classList.add('active-section');
@@ -426,7 +436,6 @@
     }
   }
 
-  // Função de hash SHA-256 (para não aparecer a senha)
   async function sha256(texto) {
     const encoder = new TextEncoder();
     const data = encoder.encode(texto);
@@ -435,14 +444,10 @@
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  // Bloqueio TOTAL: qualquer tentativa de acessar o admin sem login é barrada
   function verificarAcessoAdmin() {
-    // Verifica se tem permissão na sessão
     const auth = sessionStorage.getItem('adminAuth');
     if (auth !== 'true') {
       adminLogado = false;
-      
-      // Se alguém tentar forçar a seção admin pelo console, volta pro menu
       if (document.getElementById('admin').classList.contains('active-section')) {
         document.getElementById('admin').classList.remove('active-section');
         document.getElementById('menu').classList.add('active-section');
@@ -453,7 +458,6 @@
     return true;
   }
 
-  // Sobrescreve qualquer tentativa de mudar seção manualmente
   const originalShowSection = window.showSection;
   window.showSection = function(id) {
     if (id === 'admin' && !verificarAcessoAdmin()) {
@@ -484,6 +488,38 @@
     document.getElementById('modalAdmin').style.display = 'none';
   }
   
+  function abrirModalEditar(index) {
+    produtoEditandoIndex = index;
+    const p = produtos[index];
+    document.getElementById('editNome').value = p.nome;
+    document.getElementById('editPreco').value = p.preco;
+    document.getElementById('editDesc').value = p.desc || '';
+    
+    const selectCat = document.getElementById('editCategoria');
+    selectCat.innerHTML = categorias.map(c => `<option ${c === p.cat ? 'selected' : ''}>${c}</option>`).join('');
+    
+    document.getElementById('modalEditarProduto').style.display = 'flex';
+  }
+  
+  function fecharModalEditar() {
+    document.getElementById('modalEditarProduto').style.display = 'none';
+    produtoEditandoIndex = null;
+  }
+  
+  function salvarEdicaoProduto() {
+    if (produtoEditandoIndex === null) return;
+    
+    produtos[produtoEditandoIndex] = {
+      nome: document.getElementById('editNome').value,
+      preco: parseFloat(document.getElementById('editPreco').value),
+      cat: document.getElementById('editCategoria').value,
+      desc: document.getElementById('editDesc').value
+    };
+    
+    fecharModalEditar();
+    salvar();
+  }
+  
   function sairAdmin() {
     adminLogado = false;
     sessionStorage.removeItem('adminAuth');
@@ -492,7 +528,6 @@
   }
 
   function render() {
-    // Verifica acesso admin antes de renderizar painel
     if (document.getElementById('admin').classList.contains('active-section')) {
       if (!verificarAcessoAdmin()) {
         sairAdmin();
@@ -500,7 +535,6 @@
       }
     }
 
-    // Atualiza número da loja
     const inputLoja = document.getElementById('whatsappLoja');
     if (inputLoja) {
       inputLoja.value = numeroLoja;
@@ -510,23 +544,33 @@
       };
     }
 
-    // Select de categorias
     const selectCat = document.getElementById('pCategoria');
     if (selectCat) selectCat.innerHTML = categorias.map(c => `<option>${c}</option>`).join('');
 
-    // Lista de categorias
+    // Lista de categorias com botões de editar/excluir
     const catDiv = document.getElementById('catList');
-    if (catDiv) catDiv.innerHTML = categorias.map(c => 
-      `<span style="display:inline-block;background:#eef2f6;padding:0.3rem 1rem;border-radius:30px;margin:0.3rem;">${c}</span>`
-    ).join('');
+    if (catDiv) {
+      catDiv.innerHTML = categorias.map((c, i) => `
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#eef2f6;border-radius:30px;margin:0.3rem;padding:0.3rem 1rem;">
+          <span>${c}</span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-outline" style="padding:0.2rem 0.8rem;" onclick="editarCategoria(${i})">✏️</button>
+            <button class="btn btn-outline" style="padding:0.2rem 0.8rem;" onclick="removerCategoria(${i})">🗑️</button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-    // Lista de produtos (admin)
+    // Lista de produtos (admin) com botões de editar/excluir
     const prodDiv = document.getElementById('prodList');
     if (prodDiv) {
       prodDiv.innerHTML = produtos.map((p,i) => 
-        `<div style="display:flex;justify-content:space-between;border-bottom:1px dashed #ccc;padding:8px 0">
-          ${p.nome} - R$ ${p.preco.toFixed(2)} 
-          <button class="btn btn-outline" style="padding:0.2rem 0.8rem;" onclick="removerProduto(${i})">remover</button>
+        `<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px dashed #ccc;padding:8px 0">
+          <span>${p.nome} - R$ ${p.preco.toFixed(2)} (${p.cat})</span>
+          <div style="display:flex;gap:0.5rem;">
+            <button class="btn btn-outline" style="padding:0.2rem 0.8rem;" onclick="abrirModalEditar(${i})">✏️ editar</button>
+            <button class="btn btn-outline" style="padding:0.2rem 0.8rem;" onclick="removerProduto(${i})">🗑️ remover</button>
+          </div>
         </div>`
       ).join('');
     }
@@ -586,6 +630,47 @@
     if (inp.value.trim()) {
       categorias.push(inp.value.trim());
       inp.value = '';
+      salvar();
+    }
+  }
+  
+  function editarCategoria(index) {
+    const novaCategoria = prompt('Editar categoria:', categorias[index]);
+    if (novaCategoria && novaCategoria.trim()) {
+      const antigoNome = categorias[index];
+      categorias[index] = novaCategoria.trim();
+      
+      // Atualiza categoria nos produtos
+      produtos = produtos.map(p => {
+        if (p.cat === antigoNome) {
+          return { ...p, cat: novaCategoria.trim() };
+        }
+        return p;
+      });
+      
+      salvar();
+    }
+  }
+  
+  function removerCategoria(index) {
+    if (confirm(`Tem certeza que deseja remover a categoria "${categorias[index]}"?`)) {
+      const catRemovida = categorias[index];
+      categorias.splice(index, 1);
+      
+      // Remove produtos da categoria removida ou move para primeira categoria disponível
+      if (categorias.length > 0) {
+        produtos = produtos.map(p => {
+          if (p.cat === catRemovida) {
+            return { ...p, cat: categorias[0] };
+          }
+          return p;
+        });
+      } else {
+        // Se não houver mais categorias, remove todos os produtos
+        produtos = [];
+      }
+      
+      carrinho = {}; // limpa carrinho
       salvar();
     }
   }
@@ -670,17 +755,21 @@ ${itens.join('\n')}
   // Inicialização
   window.onload = function() {
     render();
-    // Verifica se tem sessão ativa
     if (sessionStorage.getItem('adminAuth') === 'true') {
       adminLogado = true;
     }
   };
 
-  // Expõe funções (apenas as necessárias)
+  // Expõe funções
   window.mudarQty = mudarQty;
   window.addCategoria = addCategoria;
+  window.editarCategoria = editarCategoria;
+  window.removerCategoria = removerCategoria;
   window.addProduto = addProduto;
   window.removerProduto = removerProduto;
+  window.abrirModalEditar = abrirModalEditar;
+  window.fecharModalEditar = fecharModalEditar;
+  window.salvarEdicaoProduto = salvarEdicaoProduto;
   window.finalizar = finalizar;
   window.switchTab = switchTab;
   window.abrirModalAdmin = abrirModalAdmin;
