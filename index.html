@@ -80,7 +80,7 @@
     .main-container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 2rem 1.5rem 6rem;
+      padding: 2rem 1.5rem 7rem; /* Aumentado para dar espaço à barra fixa */
     }
 
     section {
@@ -245,16 +245,18 @@
       color: white;
     }
 
+    /* BARRA DO CARRINHO - CORRIGIDA */
     .cart-bar {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.95);
       backdrop-filter: blur(10px);
       border-top: 1px solid var(--border-light);
       padding: 0.8rem 1.5rem;
       z-index: 50;
+      pointer-events: none; /* Permite clicar "através" da barra */
     }
     .cart-container {
       max-width: 1280px;
@@ -264,6 +266,7 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 1rem;
+      pointer-events: auto; /* Mantém os elementos internos clicáveis */
     }
     .cart-info {
       display: flex;
@@ -300,7 +303,13 @@
     }
 
     @media (max-width: 780px) {
-      .cart-container { flex-direction: column; align-items: flex-start; }
+      .cart-container { 
+        flex-direction: column; 
+        align-items: flex-start; 
+      }
+      .main-container {
+        padding-bottom: 8rem; /* Mais espaço em mobile */
+      }
     }
   </style>
 </head>
@@ -657,7 +666,7 @@
       const catRemovida = categorias[index];
       categorias.splice(index, 1);
       
-      // Remove produtos da categoria removida ou move para primeira categoria disponível
+      // Remove produtos da categoria removida ou move para primeira categoria restante
       if (categorias.length > 0) {
         produtos = produtos.map(p => {
           if (p.cat === catRemovida) {
